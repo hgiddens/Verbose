@@ -1,5 +1,5 @@
 {
-  "originHash" : "d6a4c36f24799ef4eb93357a7cb5df22d2f86c09119a9ce5feae77e4d727a9fd",
+  "originHash" : "eacddfb3e4974d28132c193468b752d35a674be0b72b2b19b23475523077de63",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -11,12 +11,30 @@
       }
     },
     {
+      "identity" : "elementary",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sliemeobn/elementary.git",
+      "state" : {
+        "revision" : "5e6a7b5a5d5974e90f679ce4570e1dcfb011734d",
+        "version" : "0.5.2"
+      }
+    },
+    {
       "identity" : "hummingbird",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/hummingbird-project/hummingbird.git",
       "state" : {
         "revision" : "de2ff8249862791a8972842fd13bff014e71a329",
         "version" : "2.14.0"
+      }
+    },
+    {
+      "identity" : "hummingbird-elementary",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hummingbird-community/hummingbird-elementary.git",
+      "state" : {
+        "revision" : "e41590e49cdb60dcf62004fc15729a10c069249c",
+        "version" : "0.4.1"
       }
     },
     {

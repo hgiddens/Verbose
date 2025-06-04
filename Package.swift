@@ -11,13 +11,17 @@ let package = Package(
     ],
     dependencies: [
       .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.5.1"),
+      .package(url: "https://github.com/hummingbird-community/hummingbird-elementary.git", from: "0.4.1"),
       .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.4"),
+      .package(url: "https://github.com/sliemeobn/elementary.git", from: "0.5.2"),
     ],
     targets: [
       .executableTarget(name: "Verbose",
                         dependencies: [
                           .product(name: "ArgumentParser", package: "swift-argument-parser"),
+                          .product(name: "Elementary", package: "elementary"),
                           .product(name: "Hummingbird", package: "hummingbird"),
+                          .product(name: "HummingbirdElementary", package: "hummingbird-elementary"),
                         ],
                         path: "Sources/App",
       ),

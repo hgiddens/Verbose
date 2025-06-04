@@ -1,4 +1,5 @@
 import Hummingbird
+import HummingbirdElementary
 
 // Request context used by application.
 typealias AppRequestContext = BasicRequestContext
@@ -10,7 +11,7 @@ func buildRouter() -> Router<AppRequestContext> {
     router.addMiddleware { LogRequestsMiddleware(.info) }
 
     // Add routes
-    router.get("/") { _,_ in return "Hello!" }
+    router.get("/") { _,_ in HTMLResponse { Page(title: "Hello, world!") } }
 
     return router
 }
