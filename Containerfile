@@ -1,12 +1,13 @@
 # syntax=docker/dockerfile:1
 
 # Build image
-FROM docker.io/swift:6.1 AS build
+FROM docker.io/hgiddens/swift-static:6.1.2 AS build
 WORKDIR /workspace
 
 COPY ./Package.swift ./Package.resolved /workspace/
 RUN --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
     swift package \
+        --swift-sdk x86_64-swift-linux-musl \
         --cache-path /workspace/.spm-cache \
         --only-use-versions-from-resolved-file \
         resolve
@@ -14,12 +15,14 @@ RUN --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
 COPY . /workspace/
 RUN --mount=type=cache,target=/workspace/.build,id=build \
     --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
-    swift build --product Verbose --configuration release && \
+    swift build \
+        --swift-sdk x86_64-swift-linux-musl \
+        --product Verbose --configuration release && \
     mkdir dist && \
     cp .build/release/Verbose dist/
 
 # Run image
-FROM docker.io/swift:6.1 AS release
+FROM scratch AS release
 EXPOSE 8080
 COPY --from=build /workspace/dist/Verbose /usr/local/bin/Verbose
 ENTRYPOINT ["/usr/local/bin/Verbose", "--hostname", "0.0.0.0"]
