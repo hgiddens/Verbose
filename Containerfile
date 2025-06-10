@@ -7,7 +7,7 @@ WORKDIR /workspace
 COPY ./Package.swift ./Package.resolved /workspace/
 RUN --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
     swift package \
-        --swift-sdk x86_64-swift-linux-musl \
+        --swift-sdk aarch64-swift-linux-musl \
         --cache-path /workspace/.spm-cache \
         --only-use-versions-from-resolved-file \
         resolve
@@ -16,7 +16,7 @@ COPY . /workspace/
 RUN --mount=type=cache,target=/workspace/.build,id=build \
     --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
     swift build \
-        --swift-sdk x86_64-swift-linux-musl \
+        --swift-sdk aarch64-swift-linux-musl \
         --product Verbose --configuration release && \
     mkdir dist && \
     cp .build/release/Verbose dist/
