@@ -11,7 +11,7 @@ func buildRouter() -> Router<AppRequestContext> {
     router.addMiddleware { LogRequestsMiddleware(.info) }
 
     // Add routes
-    router.get("/") { _,_ in HTMLResponse { Page(title: "Hello, world!") } }
+    router.get("/") { _,_ in HTMLResponse { Page(title: "Hi, mum!") } }
 
     return router
 }
