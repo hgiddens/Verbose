@@ -39,7 +39,7 @@ struct EntryForm: HTML {
                 "Then hit enter or press the button!"
             }
             p { "For example: v?r?o?e → variole, verbose" }
-            form(.method(.post), .action("/")) {
+            form(.method(.post)) {
                 p {
                     label(.for("pattern")) { "Word pattern: " }
                     input(
