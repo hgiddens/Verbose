@@ -19,10 +19,11 @@ RUN --mount=type=cache,target=/workspace/.build,id=build \
         --swift-sdk aarch64-swift-linux-musl \
         --product Verbose --configuration release && \
     mkdir dist && \
-    cp .build/release/Verbose dist/
+    cp -r .build/release/Verbose .build/release/Verbose_Verbose.resources dist/
 
 # Run image
 FROM scratch AS release
 EXPOSE 8080
-COPY --from=build /workspace/dist/Verbose /usr/local/bin/Verbose
+COPY --from=build /workspace/dist /usr/local/bin/
+
 ENTRYPOINT ["/usr/local/bin/Verbose", "--hostname", "0.0.0.0"]

@@ -8,16 +8,37 @@ import Testing
 @Suite final class AppTests {
     struct TestArguments: AppArguments {
         let hostname = "127.0.0.1"
-        let port = 0
         let logLevel: Logger.Level? = .trace
+        let port = 0
     }
 
-    @Test func testApp() async throws {
+    @Test func testGet() async throws {
         let args = TestArguments()
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
             try await client.execute(uri: "/", method: .get) { response in
-                #expect(response.body == ByteBuffer(string: "Hello!"))
+                #expect(response.status == .ok)
+                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+            }
+        }
+    }
+
+    @Test func testPost() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(
+              uri: "/",
+              method: .post,
+              headers: [.contentType: "application/x-www-form-urlencoded"],
+              body: ByteBuffer(staticString: "pattern=xylophon?")
+            ) { response in
+                #expect(response.status == .ok)
+                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+                let bodyString = response.body.getString(at: 0,
+                                                         length: response.body.readableBytes,
+                                                         encoding: .utf8)
+                try #expect(#require(bodyString).contains("xylophone"))
             }
         }
     }
