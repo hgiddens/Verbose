@@ -1,3 +1,4 @@
+import Foundation
 import Hummingbird
 import HummingbirdElementary
 import Solver
@@ -5,6 +6,8 @@ import Solver
 struct AppRequestContext: RequestContext {
     var coreContext: CoreRequestContextStorage
     var requestDecoder: URLEncodedFormDecoder { .init() }
+
+    let locale: Locale = .init(identifier: "en_NZ")
 
     init(source: Source) {
         self.coreContext = .init(source: source)
@@ -25,12 +28,26 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
         return HTMLResponse {
             MainLayout() {
                 EntryForm()
-                if let pattern = Pattern(string: data.pattern) {
+                if let pattern = Pattern(string: data.pattern, locale: context.locale) {
                     let start = ContinuousClock.now
-                    let result = solver.solve(pattern: pattern)
+                    let resultSet = solver.solve(pattern: pattern)
                     let end = ContinuousClock.now
 
-                    WordList(words: result, corpusSize: solver.words.count, duration: end - start)
+                    WordList(
+                      words: Array(resultSet).sorted { (a, b) in
+                          switch a.compare(b, options: .caseInsensitive, locale: context.locale) {
+                          case .orderedSame:
+                              // By default, compare orders attic before Attic
+                              // which makes my soul hurt.
+                              return a < b
+                          case let ordering:
+                              return ordering == .orderedAscending
+                          }
+                      },
+                      corpusSize: solver.words.count,
+                      duration: end - start,
+                      locale: context.locale
+                    )
                 } else {
                     BadPattern(pattern: data.pattern)
                 }

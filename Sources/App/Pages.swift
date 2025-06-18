@@ -74,6 +74,7 @@ struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
     let duration: Duration
+    let locale: Locale
 
     var content: some HTML {
         section {
@@ -88,12 +89,13 @@ struct WordList: HTML {
                 }
                 aside {
                     p {
+                        // TODO: locale?
                         let durationString = duration.formatted(.units(
                                                                   allowed: [.seconds, .milliseconds],
                                                                   width: .narrow,
                                                                   maximumUnitCount: 1,
-                                                                ))
-                        "Checked \(corpusSize.formatted(.number)) words in \(durationString)"
+                                                                ).locale(locale))
+                        "Checked \(corpusSize.formatted(.number.locale(locale))) words in \(durationString)"
                     }
                 }
             }

@@ -1,34 +1,32 @@
 import Foundation
 
+private extension String {
+    func foldedDiacritics(locale: Locale) -> String {
+        self.folding(options: .diacriticInsensitive, locale: locale)
+    }
+}
+
 public struct Pattern {
     private let value: Regex<AnyRegexOutput>
+    private let locale: Locale
 
-    private static func validChar(_ c: Character) -> Bool {
-        guard let v = c.asciiValue else { return false }
-
-        // I don't care about anything other than literally ASCII right now.
-        return
-          v == "?".first!.asciiValue! ||
-          ("A".first!.asciiValue! ... "Z".first!.asciiValue!).contains(v) ||
-          ("a".first!.asciiValue! ... "z".first!.asciiValue!).contains(v)
-    }
-
-    public init?(string: String) {
+    public init?(string: String, locale: Locale) {
         let pattern = string.filter { !$0.isWhitespace }
 
         guard
           pattern.count > 0,
-          pattern.allSatisfy(Self.validChar)
+          pattern.allSatisfy({ $0 == "?" || $0.isLetter })
         else { return nil }
 
-        guard let regex = try? Regex("^" + pattern.replacingOccurrences(of: "?", with: "\\w") + "$")
+        guard let regex = try? Regex(pattern.foldedDiacritics(locale: locale).replacingOccurrences(of: "?", with: "\\w"))
         else { return nil }
 
-        self.value = regex.asciiOnlyCharacterClasses().ignoresCase()
+        self.value = regex.ignoresCase()
+        self.locale = locale
     }
 
     public func matches(string: String) -> Bool {
-        let match = try? value.wholeMatch(in: string)
+        let match = try? value.wholeMatch(in: string.foldedDiacritics(locale: locale))
         return match != nil
     }
 }
@@ -40,7 +38,7 @@ public struct Solver: Sendable {
         self.words = words
     }
 
-    public func solve(pattern: Pattern) -> [String] {
-        words.filter(pattern.matches).sorted()
+    public func solve(pattern: Pattern) -> Set<String> {
+        Set(words.filter(pattern.matches))
     }
 }
