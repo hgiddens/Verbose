@@ -89,7 +89,6 @@ struct WordList: HTML {
                 }
                 aside {
                     p {
-                        // TODO: locale?
                         let durationString = duration.formatted(.units(
                                                                   allowed: [.seconds, .milliseconds],
                                                                   width: .narrow,
