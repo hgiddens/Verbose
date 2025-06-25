@@ -12,13 +12,14 @@ RUN --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
         --only-use-versions-from-resolved-file \
         resolve
 
-COPY . /workspace/
+COPY Sources /workspace/Sources/
+
 RUN --mount=type=cache,target=/workspace/.build,id=build \
     --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
     swift build \
         --swift-sdk aarch64-swift-linux-musl \
         --product Verbose --configuration release && \
-    mkdir dist && \
+    mkdir -p dist && \
     cp -r .build/release/Verbose .build/release/Verbose_Verbose.resources dist/
 
 # Run image

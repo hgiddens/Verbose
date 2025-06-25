@@ -1,3 +1,15 @@
+*.xcodeproj
+*.xcworkspace
+.DS_Store
 .build
 .git
-
+.gitignore
+.swift-format
+.swiftpm/
+Containerfile
+DerivedData/
+LICENSE
+Packages/
+README.md
+Tests/
+xcuserdata/
