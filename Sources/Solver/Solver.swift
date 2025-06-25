@@ -1,7 +1,7 @@
 import Foundation
 
-private extension String {
-    func foldedDiacritics(locale: Locale) -> String {
+extension String {
+    fileprivate func foldedDiacritics(locale: Locale) -> String {
         self.folding(options: .diacriticInsensitive, locale: locale)
     }
 }
@@ -14,11 +14,13 @@ public struct Pattern {
         let pattern = string.filter { !$0.isWhitespace }
 
         guard
-          pattern.count > 0,
-          pattern.allSatisfy({ $0 == "?" || $0.isLetter })
+            pattern.count > 0,
+            pattern.allSatisfy({ $0 == "?" || $0.isLetter })
         else { return nil }
 
-        guard let regex = try? Regex(pattern.foldedDiacritics(locale: locale).replacingOccurrences(of: "?", with: "\\w"))
+        guard
+            let regex = try? Regex(
+                pattern.foldedDiacritics(locale: locale).replacingOccurrences(of: "?", with: "\\w"))
         else { return nil }
 
         self.value = regex.ignoresCase()

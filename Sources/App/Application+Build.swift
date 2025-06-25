@@ -18,25 +18,28 @@ private func buildSolver() throws -> Solver {
     return Solver(words: lines)
 }
 
-public func buildApplication(_ arguments: some AppArguments) async throws -> some ApplicationProtocol {
+public func buildApplication(_ arguments: some AppArguments) async throws
+    -> some ApplicationProtocol
+{
     let environment = Environment()
     let logger = {
         var logger = Logger(label: "Verbose")
         logger.logLevel =
-          arguments.logLevel ??
-          environment.get("LOG_LEVEL").flatMap { Logger.Level(rawValue: $0) } ??
-          .info
+            arguments.logLevel ?? environment.get("LOG_LEVEL").flatMap {
+                Logger.Level(rawValue: $0)
+            }
+            ?? .info
         return logger
     }()
     let solver = try buildSolver()
     logger.debug("Loaded word list with \(solver.words.count) words")
     let router = buildRouter(solver: solver)
     return Application(
-      router: router,
-      configuration: .init(
-        address: .hostname(arguments.hostname, port: arguments.port),
-        serverName: "Verbose",
-      ),
-      logger: logger,
+        router: router,
+        configuration: .init(
+            address: .hostname(arguments.hostname, port: arguments.port),
+            serverName: "Verbose",
+        ),
+        logger: logger,
     )
 }

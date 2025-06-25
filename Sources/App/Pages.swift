@@ -43,12 +43,12 @@ struct EntryForm: HTML {
                 p {
                     label(.for("pattern")) { "Word pattern: " }
                     input(
-                      .id("pattern"),
-                      .name("pattern"),
-                      .placeholder("v?r?o?e"),
-                      .type(.text),
-                      .required,
-                      .autocomplete(.off),
+                        .id("pattern"),
+                        .name("pattern"),
+                        .placeholder("v?r?o?e"),
+                        .type(.text),
+                        .required,
+                        .autocomplete(.off),
                     )
                 }
                 p {
@@ -89,11 +89,12 @@ struct WordList: HTML {
                 }
                 aside {
                     p {
-                        let durationString = duration.formatted(.units(
-                                                                  allowed: [.seconds, .milliseconds],
-                                                                  width: .narrow,
-                                                                  maximumUnitCount: 1,
-                                                                ).locale(locale))
+                        let durationString = duration.formatted(
+                            .units(
+                                allowed: [.seconds, .milliseconds],
+                                width: .narrow,
+                                maximumUnitCount: 1,
+                            ).locale(locale))
                         "Checked \(corpusSize.formatted(.number.locale(locale))) words in \(durationString)"
                     }
                 }

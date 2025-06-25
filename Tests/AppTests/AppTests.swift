@@ -28,16 +28,17 @@ import Testing
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
             try await client.execute(
-              uri: "/",
-              method: .post,
-              headers: [.contentType: "application/x-www-form-urlencoded"],
-              body: ByteBuffer(staticString: "pattern=xylophon?")
+                uri: "/",
+                method: .post,
+                headers: [.contentType: "application/x-www-form-urlencoded"],
+                body: ByteBuffer(staticString: "pattern=xylophon?")
             ) { response in
                 #expect(response.status == .ok)
                 #expect(response.headers[.contentType] == "text/html; charset=utf-8")
-                let bodyString = response.body.getString(at: 0,
-                                                         length: response.body.readableBytes,
-                                                         encoding: .utf8)
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
                 try #expect(#require(bodyString).contains("xylophone"))
             }
         }
