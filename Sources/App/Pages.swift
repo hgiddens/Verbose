@@ -70,6 +70,28 @@ struct BadPattern: HTML {
     }
 }
 
+struct Word: HTML {
+    let word: String
+    let locale: Locale
+
+    init(_ word: String, locale: Locale) {
+        self.word = word
+        self.locale = locale
+    }
+
+    var content: some HTML {
+        let lang = locale.language.languageCode?.identifier ?? "en"
+        word
+        " "
+        a(
+            .href("https://\(lang).wiktionary.org/wiki/\(word)"), .target(.blank),
+            .rel("noopener noreferrer")
+        ) {
+            "📖"
+        }
+    }
+}
+
 struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
@@ -84,7 +106,7 @@ struct WordList: HTML {
                 h3 { "Words:" }
                 ul {
                     ForEach(words) { word in
-                        li { word }
+                        li { Word(word, locale: locale) }
                     }
                 }
                 aside {

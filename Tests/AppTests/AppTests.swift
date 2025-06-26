@@ -40,7 +40,8 @@ import Testing
                     at: 0,
                     length: response.body.readableBytes,
                     encoding: .utf8)
-                try #expect(#require(bodyString).contains("xylophone"))
+                try #expect(
+                    #require(bodyString).contains("https://en.wiktionary.org/wiki/xylophone"))
             }
         }
     }
