@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
         --only-use-versions-from-resolved-file \
         resolve
 
-COPY Sources /workspace/Sources/
+COPY . /workspace/
 
 RUN --mount=type=cache,target=/workspace/.build,id=build \
     --mount=type=cache,target=/workspace/.spm-cache,id=spm-cache \
