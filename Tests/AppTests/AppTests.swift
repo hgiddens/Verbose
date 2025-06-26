@@ -19,6 +19,7 @@ import Testing
             try await client.execute(uri: "/", method: .get) { response in
                 #expect(response.status == .ok)
                 #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+                #expect(response.headers[.contentSecurityPolicy] == "frame-ancestors 'none'")
             }
         }
     }

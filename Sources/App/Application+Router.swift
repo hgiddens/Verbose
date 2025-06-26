@@ -19,6 +19,7 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
 
     // Add middleware
     router.addMiddleware { LogRequestsMiddleware(.info) }
+    router.addMiddleware { SecurityHeadersMiddleware() }
 
     // Add routes
     router.get("/") { _, _ in HTMLResponse { MainLayout { EntryForm() } } }
