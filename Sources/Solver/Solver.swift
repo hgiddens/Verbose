@@ -53,14 +53,21 @@ internal struct CompiledPattern {
 }
 
 public struct Solver: Sendable {
-    public let words: [String]
+    public let words: [Int: [String]]
+    public let totalWords: Int
 
     public init(words: [String]) {
-        self.words = words
+        var wordsByLength: [Int: [String]] = [:]
+        for word in words {
+            wordsByLength[word.count, default: []].append(word)
+        }
+        self.words = wordsByLength
+        self.totalWords = words.count
     }
 
     public func solve(pattern: Pattern, locale: Locale) throws -> Set<String> {
         let compiled = try CompiledPattern(pattern: pattern, locale: locale)
-        return Set(words.filter(compiled.matches))
+        let candidateWords = words[pattern.value.count] ?? []
+        return Set(candidateWords.filter(compiled.matches))
     }
 }

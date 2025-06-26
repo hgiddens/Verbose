@@ -32,7 +32,7 @@ public func buildApplication(_ arguments: some AppArguments) async throws
         return logger
     }()
     let solver = try buildSolver()
-    logger.debug("Loaded word list with \(solver.words.count) words")
+    logger.debug("Loaded word list with \(solver.totalWords) words")
     let router = buildRouter(solver: solver)
     return Application(
         router: router,

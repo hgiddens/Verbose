@@ -52,7 +52,7 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
                             return ordering == .orderedAscending
                         }
                     },
-                    corpusSize: solver.words.count,
+                    corpusSize: solver.totalWords,
                     duration: end - start,
                     locale: context.locale
                 )

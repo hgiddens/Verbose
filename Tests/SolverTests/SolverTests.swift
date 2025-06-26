@@ -51,15 +51,16 @@ private let locale: Locale = .init(identifier: "en_NZ")
     }
 
     @Test func diacritics() throws {
-        let solver = Solver(words: ["CAFE", "CAFÉ", "cafe", "café"])
+        let allWords = ["CAFE", "CAFÉ", "cafe", "café"]
+        let solver = Solver(words: allWords)
 
         let barePattern = try #require(Pattern(string: "cafe"))
         let bareResult = try solver.solve(pattern: barePattern, locale: locale)
-        #expect(bareResult == Set(solver.words))
+        #expect(bareResult == Set(allWords))
 
         let diacriticPattern = try #require(Pattern(string: "café"))
         let diacriticResult = try solver.solve(pattern: diacriticPattern, locale: locale)
-        #expect(diacriticResult == Set(solver.words))
+        #expect(diacriticResult == Set(allWords))
     }
 
     @Test func noMatches() throws {
