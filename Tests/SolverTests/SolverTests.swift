@@ -7,58 +7,66 @@ private let locale: Locale = .init(identifier: "en_NZ")
 
 @Suite final class PatternTests {
     @Test func nullPattern() {
-        #expect(Pattern(string: "", locale: locale) == nil)
+        #expect(Pattern(string: "") == nil)
     }
 
     @Test func simplePattern() throws {
-        let pattern = try #require(Pattern(string: "AZaz?", locale: locale))
-        #expect(pattern.matches(string: "AZazb"))
-        #expect(pattern.matches(string: "AZazé"))
-        #expect(!pattern.matches(string: "xAZazbx"))
+        let pattern = try #require(Pattern(string: "AZaz?"))
+        let compiled = try CompiledPattern(pattern: pattern, locale: locale)
+        #expect(compiled.matches(string: "AZazb"))
+        #expect(compiled.matches(string: "AZazé"))
+        #expect(!compiled.matches(string: "xAZazbx"))
     }
 
     @Test func spacesRemoved() throws {
-        #expect(Pattern(string: " ", locale: locale) == nil)
+        #expect(Pattern(string: " ") == nil)
 
-        let pattern = try #require(Pattern(string: " a ? b ? ", locale: locale))
-        #expect(pattern.matches(string: "axby"))
+        let pattern = try #require(Pattern(string: " a ? b ? "))
+        let compiled = try CompiledPattern(pattern: pattern, locale: locale)
+        #expect(compiled.matches(string: "axby"))
     }
 
     @Test func diacritics() throws {
-        let pattern = try #require(Pattern(string: "café", locale: locale))
+        let pattern = try #require(Pattern(string: "café"))
+        let compiled = try CompiledPattern(pattern: pattern, locale: locale)
 
-        #expect(pattern.matches(string: "CAFE"))
-        #expect(pattern.matches(string: "CAFÉ"))
-        #expect(pattern.matches(string: "cafe"))
-        #expect(pattern.matches(string: "café"))
+        #expect(compiled.matches(string: "CAFE"))
+        #expect(compiled.matches(string: "CAFÉ"))
+        #expect(compiled.matches(string: "cafe"))
+        #expect(compiled.matches(string: "café"))
     }
 
     @Test func invalidCharacters() throws {
-        #expect(Pattern(string: "grand-mother", locale: locale) == nil)
-        #expect(Pattern(string: "123", locale: locale) == nil)
+        #expect(Pattern(string: "grand-mother") == nil)
+        #expect(Pattern(string: "123") == nil)
     }
 }
 
 @Suite final class SolverTests {
     @Test func matches() throws {
-        let pattern = try #require(Pattern(string: "f??d", locale: locale))
+        let pattern = try #require(Pattern(string: "f??d"))
         let solver = Solver(words: ["fade", "Ford", "FEED", "reed"])
-        #expect(solver.solve(pattern: pattern) == Set(["FEED", "Ford"]))
+        let result = try solver.solve(pattern: pattern, locale: locale)
+        #expect(result == Set(["FEED", "Ford"]))
     }
 
     @Test func diacritics() throws {
         let solver = Solver(words: ["CAFE", "CAFÉ", "cafe", "café"])
 
-        let barePattern = try #require(Pattern(string: "cafe", locale: locale))
-        #expect(solver.solve(pattern: barePattern) == Set(solver.words))
+        let barePattern = try #require(Pattern(string: "cafe"))
+        let bareResult = try solver.solve(pattern: barePattern, locale: locale)
+        #expect(bareResult == Set(solver.words))
 
-        let diacriticPattern = try #require(Pattern(string: "café", locale: locale))
-        #expect(solver.solve(pattern: diacriticPattern) == Set(solver.words))
+        let diacriticPattern = try #require(Pattern(string: "café"))
+        let diacriticResult = try solver.solve(pattern: diacriticPattern, locale: locale)
+        #expect(diacriticResult == Set(solver.words))
     }
 
     @Test func noMatches() throws {
-        let pattern = try #require(Pattern(string: "f??d", locale: locale))
-        #expect(Solver(words: []).solve(pattern: pattern) == Set())
-        #expect(Solver(words: ["fud"]).solve(pattern: pattern) == Set())
+        let pattern = try #require(Pattern(string: "f??d"))
+        let emptyResult = try Solver(words: []).solve(pattern: pattern, locale: locale)
+        #expect(emptyResult == Set())
+        let noMatchResult = try Solver(words: ["fud"]).solve(pattern: pattern, locale: locale)
+        #expect(noMatchResult == Set())
     }
 }

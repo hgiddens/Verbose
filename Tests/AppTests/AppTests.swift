@@ -18,13 +18,13 @@ import Testing
         try await app.test(.router) { client in
             try await client.execute(uri: "/", method: .get) { response in
                 #expect(response.status == .ok)
-                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
                 #expect(response.headers[.contentSecurityPolicy] == "frame-ancestors 'none'")
+                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
             }
         }
     }
 
-    @Test func testPost() async throws {
+    @Test func testPostWithGoodPattern() async throws {
         let args = TestArguments()
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
@@ -41,6 +41,27 @@ import Testing
                     length: response.body.readableBytes,
                     encoding: .utf8)
                 try #expect(#require(bodyString).contains("xylophone"))
+            }
+        }
+    }
+
+    @Test func testPostWithBadPattern() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(
+                uri: "/",
+                method: .post,
+                headers: [.contentType: "application/x-www-form-urlencoded"],
+                body: ByteBuffer(staticString: "pattern=inv@lid!")
+            ) { response in
+                #expect(response.status == .ok)
+                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
+                try #expect(#require(bodyString).contains("inv@lid!"))
             }
         }
     }
