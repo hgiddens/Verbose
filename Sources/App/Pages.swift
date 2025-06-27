@@ -2,19 +2,14 @@ import Elementary
 import Foundation
 @preconcurrency import Lingo
 
-protocol Localizer: Sendable {
-    func localize(_ key: String, interpolations: [String: String]?) -> String
-}
-
-extension Localizer {
-    func localize(_ key: String) -> String {
-        localize(key, interpolations: nil)
-    }
-}
-
-struct LingoLocalizer: Localizer {
+final class Localizer: Sendable {
     let lingo: Lingo
     let locale: Locale
+
+    init(lingo: Lingo, locale: Locale) {
+        self.lingo = lingo
+        self.locale = locale
+    }
 
     func localize(_ key: String, interpolations: [String: String]? = nil) -> String {
         let localeCode = locale.language.languageCode?.identifier ?? "en"
@@ -24,7 +19,7 @@ struct LingoLocalizer: Localizer {
 
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
-    let localizer: any Localizer
+    let localizer: Localizer
     var title: String { localizer.localize("app.title") }
     let lang = "en"
 
@@ -48,7 +43,7 @@ struct MainLayout<Body: HTML>: HTMLDocument {
 }
 
 struct EntryForm: HTML {
-    let localizer: any Localizer
+    let localizer: Localizer
 
     struct FormData: Decodable {
         let pattern: String
@@ -83,7 +78,7 @@ struct EntryForm: HTML {
 
 struct BadPattern: HTML {
     let pattern: String
-    let localizer: any Localizer
+    let localizer: Localizer
 
     var content: some HTML {
         section {
@@ -123,7 +118,7 @@ struct WordList: HTML {
     let corpusSize: Int
     let duration: Duration
     let locale: Locale
-    let localizer: any Localizer
+    let localizer: Localizer
 
     var content: some HTML {
         section {

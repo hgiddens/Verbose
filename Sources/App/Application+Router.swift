@@ -24,11 +24,11 @@ func buildRouter(solver: Solver, lingo: Lingo) -> Router<AppRequestContext> {
 
     // Add routes
     router.get("/") { _, context in
-        let localizer = LingoLocalizer(lingo: lingo, locale: context.locale)
+        let localizer = Localizer(lingo: lingo, locale: context.locale)
         return HTMLResponse { MainLayout(localizer: localizer) { EntryForm(localizer: localizer) } }
     }
     router.post("/") { request, context in
-        let localizer = LingoLocalizer(lingo: lingo, locale: context.locale)
+        let localizer = Localizer(lingo: lingo, locale: context.locale)
         let data = try await request.decode(as: EntryForm.FormData.self, context: context)
         guard let pattern = Pattern(string: data.pattern) else {
             return HTMLResponse {
