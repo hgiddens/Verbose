@@ -3,16 +3,22 @@ import Foundation
 @preconcurrency import Lingo
 
 protocol Localizer: Sendable {
-    func localize(_ key: String) -> String
+    func localize(_ key: String, interpolations: [String: String]?) -> String
+}
+
+extension Localizer {
+    func localize(_ key: String) -> String {
+        localize(key, interpolations: nil)
+    }
 }
 
 struct LingoLocalizer: Localizer {
     let lingo: Lingo
     let locale: Locale
 
-    func localize(_ key: String) -> String {
+    func localize(_ key: String, interpolations: [String: String]? = nil) -> String {
         let localeCode = locale.language.languageCode?.identifier ?? "en"
-        return lingo.localize(key, locale: localeCode)
+        return lingo.localize(key, locale: localeCode, interpolations: interpolations ?? [:])
     }
 }
 
@@ -83,8 +89,7 @@ struct BadPattern: HTML {
         section {
             h3 { localizer.localize("error.title") }
             p {
-                localizer.localize("error.pattern").replacingOccurrences(
-                    of: "%{pattern}", with: pattern)
+                localizer.localize("error.pattern", interpolations: ["pattern": pattern])
             }
             p { localizer.localize("error.pattern.help") }
         }
@@ -139,11 +144,12 @@ struct WordList: HTML {
                                 width: .narrow,
                                 maximumUnitCount: 1,
                             ).locale(locale))
-                        localizer.localize("results.stats")
-                            .replacingOccurrences(
-                                of: "%{count}", with: corpusSize.formatted(.number.locale(locale))
-                            )
-                            .replacingOccurrences(of: "%{duration}", with: durationString)
+                        localizer.localize(
+                            "results.stats",
+                            interpolations: [
+                                "count": corpusSize.formatted(.number.locale(locale)),
+                                "duration": durationString,
+                            ])
                     }
                 }
             }
