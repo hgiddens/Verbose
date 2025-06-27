@@ -48,6 +48,8 @@ swift format -ipr .
 
 - Format the code before each commit.
 - Source code and text files (CSS, JSON, markdown etc.) should generally end with a newline.
+- When order doesn't matter (e.g., dependencies in a dependency list, imports), prefer ASCIIbetical order.
+- Prefer British English, although obviously you need to deal with the fact that APIs etc. will want simplified English..
 
 ## Architecture Overview
 

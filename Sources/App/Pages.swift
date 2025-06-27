@@ -1,9 +1,25 @@
 import Elementary
 import Foundation
+@preconcurrency import Lingo
+
+protocol Localizer: Sendable {
+    func localize(_ key: String) -> String
+}
+
+struct LingoLocalizer: Localizer {
+    let lingo: Lingo
+    let locale: Locale
+
+    func localize(_ key: String) -> String {
+        let localeCode = locale.language.languageCode?.identifier ?? "en"
+        return lingo.localize(key, locale: localeCode)
+    }
+}
 
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
-    let title = "Verbose"
+    let localizer: any Localizer
+    var title: String { localizer.localize("app.title") }
     let lang = "en"
 
     @HTMLBuilder var pageContent: Body
@@ -17,7 +33,7 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         header {
             hgroup {
                 h1 { title }
-                h2 { "Because words shouldn't make you cross" }
+                h2 { localizer.localize("app.subtitle") }
             }
         }
 
@@ -26,33 +42,33 @@ struct MainLayout<Body: HTML>: HTMLDocument {
 }
 
 struct EntryForm: HTML {
+    let localizer: any Localizer
+
     struct FormData: Decodable {
         let pattern: String
     }
 
     var content: some HTML {
         section {
-            h3 { "Let's solve a word!" }
+            h3 { localizer.localize("entry.title") }
             p {
-                "Enter a word, replacing unknown letters with a question mark. "
-                "Case is ignored. "
-                "Then hit enter or press the button!"
+                localizer.localize("entry.instructions")
             }
-            p { "For example: v?r?o?e → variole, verbose" }
+            p { localizer.localize("entry.example") }
             form(.method(.post)) {
                 p {
-                    label(.for("pattern")) { "Word pattern: " }
+                    label(.for("pattern")) { localizer.localize("entry.label") }
                     input(
                         .id("pattern"),
                         .name("pattern"),
-                        .placeholder("v?r?o?e"),
+                        .placeholder(localizer.localize("entry.placeholder")),
                         .type(.text),
                         .required,
                         .autocomplete(.off),
                     )
                 }
                 p {
-                    input(.type(.submit), .value("Let's go!"))
+                    input(.type(.submit), .value(localizer.localize("entry.button")))
                 }
             }
         }
@@ -61,11 +77,16 @@ struct EntryForm: HTML {
 
 struct BadPattern: HTML {
     let pattern: String
+    let localizer: any Localizer
+
     var content: some HTML {
         section {
-            h3 { "Sorry!" }
-            p { "I didn't understand the pattern “\(pattern)”." }
-            p { "It should only be letters (where known) and question marks (where not)." }
+            h3 { localizer.localize("error.title") }
+            p {
+                localizer.localize("error.pattern").replacingOccurrences(
+                    of: "%{pattern}", with: pattern)
+            }
+            p { localizer.localize("error.pattern.help") }
         }
     }
 }
@@ -97,13 +118,14 @@ struct WordList: HTML {
     let corpusSize: Int
     let duration: Duration
     let locale: Locale
+    let localizer: any Localizer
 
     var content: some HTML {
         section {
             if words.count == 0 {
-                p { "No words found :(" }
+                p { localizer.localize("results.none") }
             } else {
-                h3 { "Words:" }
+                h3 { localizer.localize("results.title") }
                 ul {
                     ForEach(words) { word in
                         li { Word(word, locale: locale) }
@@ -117,7 +139,11 @@ struct WordList: HTML {
                                 width: .narrow,
                                 maximumUnitCount: 1,
                             ).locale(locale))
-                        "Checked \(corpusSize.formatted(.number.locale(locale))) words in \(durationString)"
+                        localizer.localize("results.stats")
+                            .replacingOccurrences(
+                                of: "%{count}", with: corpusSize.formatted(.number.locale(locale))
+                            )
+                            .replacingOccurrences(of: "%{duration}", with: durationString)
                     }
                 }
             }

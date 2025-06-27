@@ -1,6 +1,7 @@
 import Foundation
 import Hummingbird
 import HummingbirdElementary
+@preconcurrency import Lingo
 import Solver
 
 struct AppRequestContext: RequestContext {
@@ -14,7 +15,7 @@ struct AppRequestContext: RequestContext {
     }
 }
 
-func buildRouter(solver: Solver) -> Router<AppRequestContext> {
+func buildRouter(solver: Solver, lingo: Lingo) -> Router<AppRequestContext> {
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
@@ -22,14 +23,18 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
     router.addMiddleware { SecurityHeadersMiddleware() }
 
     // Add routes
-    router.get("/") { _, _ in HTMLResponse { MainLayout { EntryForm() } } }
+    router.get("/") { _, context in
+        let localizer = LingoLocalizer(lingo: lingo, locale: context.locale)
+        return HTMLResponse { MainLayout(localizer: localizer) { EntryForm(localizer: localizer) } }
+    }
     router.post("/") { request, context in
+        let localizer = LingoLocalizer(lingo: lingo, locale: context.locale)
         let data = try await request.decode(as: EntryForm.FormData.self, context: context)
         guard let pattern = Pattern(string: data.pattern) else {
             return HTMLResponse {
-                MainLayout {
-                    EntryForm()
-                    BadPattern(pattern: data.pattern)
+                MainLayout(localizer: localizer) {
+                    EntryForm(localizer: localizer)
+                    BadPattern(pattern: data.pattern, localizer: localizer)
                 }
             }
         }
@@ -39,8 +44,8 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
         let end = ContinuousClock.now
 
         return HTMLResponse {
-            MainLayout {
-                EntryForm()
+            MainLayout(localizer: localizer) {
+                EntryForm(localizer: localizer)
                 WordList(
                     words: Array(resultSet).sorted { (a, b) in
                         switch a.compare(b, options: .caseInsensitive, locale: context.locale) {
@@ -54,7 +59,8 @@ func buildRouter(solver: Solver) -> Router<AppRequestContext> {
                     },
                     corpusSize: solver.totalWords,
                     duration: end - start,
-                    locale: context.locale
+                    locale: context.locale,
+                    localizer: localizer
                 )
             }
         }

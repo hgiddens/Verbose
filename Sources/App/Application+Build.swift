@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+@preconcurrency import Lingo
 import Logging
 import Solver
 
@@ -18,6 +19,11 @@ private func buildSolver() throws -> Solver {
     return Solver(words: lines)
 }
 
+private func buildLingo() throws -> Lingo {
+    let localizationsURL = Bundle.module.url(forResource: "Localisations", withExtension: nil)!
+    return try Lingo(rootPath: localizationsURL.path, defaultLocale: "en")
+}
+
 public func buildApplication(_ arguments: some AppArguments) async throws
     -> some ApplicationProtocol
 {
@@ -33,7 +39,9 @@ public func buildApplication(_ arguments: some AppArguments) async throws
     }()
     let solver = try buildSolver()
     logger.debug("Loaded word list with \(solver.totalWords) words")
-    let router = buildRouter(solver: solver)
+    let lingo = try buildLingo()
+    logger.debug("Loaded localisations")
+    let router = buildRouter(solver: solver, lingo: lingo)
     return Application(
         router: router,
         configuration: .init(

@@ -15,6 +15,7 @@ let package = Package(
             url: "https://github.com/hummingbird-community/hummingbird-elementary.git",
             from: "0.4.1"),
         .package(url: "https://github.com/hummingbird-project/hummingbird.git", from: "2.0.4"),
+        .package(url: "https://github.com/miroslavkovac/Lingo.git", from: "4.0.0"),
         .package(url: "https://github.com/sliemeobn/elementary.git", from: "0.5.2"),
     ],
     targets: [
@@ -36,9 +37,13 @@ let package = Package(
                 .product(name: "Elementary", package: "elementary"),
                 .product(name: "Hummingbird", package: "hummingbird"),
                 .product(name: "HummingbirdElementary", package: "hummingbird-elementary"),
+                .product(name: "Lingo", package: "Lingo"),
             ],
             path: "Sources/App",
-            resources: [.process("words.txt")],
+            resources: [
+                .copy("Localisations"),
+                .copy("words.txt"),
+            ],
         ),
         .testTarget(
             name: "VerboseTests",
