@@ -12,11 +12,52 @@ import Testing
         let port = 0
     }
 
-    @Test func testGet() async throws {
+    @Test func testRedirectDefault() async throws {
         let args = TestArguments()
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
             try await client.execute(uri: "/", method: .get) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "/en")
+            }
+        }
+    }
+
+    @Test func testAcceptLanguageNegotiation() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "en-US,en;q=0.9"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "/en")
+            }
+        }
+    }
+
+    @Test func testAcceptLanguageUnsupported() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "es-ES,es;q=0.9,fr;q=0.8"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "/en")
+            }
+        }
+    }
+
+    @Test func testGet() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/en", method: .get) { response in
                 #expect(response.status == .ok)
                 #expect(response.headers[.contentSecurityPolicy] == "frame-ancestors 'none'")
                 #expect(response.headers[.contentType] == "text/html; charset=utf-8")
@@ -29,7 +70,7 @@ import Testing
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
             try await client.execute(
-                uri: "/",
+                uri: "/en",
                 method: .post,
                 headers: [.contentType: "application/x-www-form-urlencoded"],
                 body: ByteBuffer(staticString: "pattern=xylophon?")
@@ -51,7 +92,7 @@ import Testing
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
             try await client.execute(
-                uri: "/",
+                uri: "/en",
                 method: .post,
                 headers: [.contentType: "application/x-www-form-urlencoded"],
                 body: ByteBuffer(staticString: "pattern=inv@lid!")

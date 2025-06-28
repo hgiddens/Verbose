@@ -15,7 +15,33 @@ struct AppRequestContext: RequestContext {
     }
 }
 
-func buildRouter(solver: Solver, lingo: Lingo) -> Router<AppRequestContext> {
+private func negotiateLanguage(from acceptLanguage: String) -> SupportedLanguage {
+    let supportedCodes = Set(SupportedLanguage.allCases.map { $0.description })
+
+    let languages =
+        acceptLanguage
+        .components(separatedBy: ",")
+        .compactMap { component -> (String, Double)? in
+            let parts = component.trimmingCharacters(in: .whitespaces).components(
+                separatedBy: ";q=")
+            let lang = parts[0].components(separatedBy: "-")[0]
+            let quality = parts.count > 1 ? Double(parts[1]) ?? 1.0 : 1.0
+            return (lang, quality)
+        }
+        .sorted { $0.1 > $1.1 }
+
+    for (lang, _) in languages {
+        if supportedCodes.contains(lang) {
+            return SupportedLanguage.allCases.first { $0.description == lang }!
+        }
+    }
+
+    return SupportedLanguage.default
+}
+
+func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lingo: Lingo)
+    -> Router<AppRequestContext>
+{
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
@@ -23,11 +49,30 @@ func buildRouter(solver: Solver, lingo: Lingo) -> Router<AppRequestContext> {
     router.addMiddleware { SecurityHeadersMiddleware() }
 
     // Add routes
-    router.get("/") { _, context in
+    router.get("/") { request, context in
+        let acceptLanguage = request.headers[.acceptLanguage] ?? ""
+        let negotiatedLanguage = negotiateLanguage(from: acceptLanguage)
+        return Response(status: .found, headers: [.location: "/\(negotiatedLanguage)"])
+    }
+
+    router.get("/:language") { request, context in
+        guard let languageCode = context.parameters.get("language"),
+            SupportedLanguage.allCases.first(where: { $0.description == languageCode }) != nil
+        else {
+            throw HTTPError(.notFound)
+        }
         let localizer = Localizer(lingo: lingo, locale: context.locale)
         return HTMLResponse { MainLayout(localizer: localizer) { EntryForm(localizer: localizer) } }
     }
-    router.post("/") { request, context in
+    router.post("/:language") { request, context in
+        guard let languageCode = context.parameters.get("language"),
+            let language = SupportedLanguage.allCases.first(where: {
+                $0.description == languageCode
+            })
+        else {
+            throw HTTPError(.notFound)
+        }
+        let solver = solvers(language)
         let localizer = Localizer(lingo: lingo, locale: context.locale)
         let data = try await request.decode(as: EntryForm.FormData.self, context: context)
         guard let pattern = Pattern(string: data.pattern) else {
