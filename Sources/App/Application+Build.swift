@@ -13,7 +13,7 @@ public protocol AppArguments {
 private func buildSolver() throws -> Solver {
     // This runs at app startup and will never change, so I'm not going to
     // bother defining a custom error type to deal with it "properly".
-    let url = Bundle.module.url(forResource: "words", withExtension: "txt")!
+    let url = Bundle.module.url(forResource: "words-en", withExtension: "txt")!
     let contents = try String(contentsOf: url, encoding: .utf8)
     let lines = contents.components(separatedBy: .newlines)
     return Solver(words: lines)

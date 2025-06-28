@@ -42,7 +42,7 @@ let package = Package(
             path: "Sources/App",
             resources: [
                 .copy("Localisations"),
-                .copy("words.txt"),
+                .copy("words-en.txt"),
             ],
         ),
         .testTarget(
