@@ -1,0 +1,16 @@
+{
+  "app.title": "Verbose",
+  "app.subtitle": "Denn Wörte sollte dich nicht verängern",
+  "entry.title": "Lösen wir mal ein Wort!",
+  "entry.instructions": "Gib ein Wort ein und ersetze unbekannte Buchstaben mit einem Fragezeichen. Gross-/Kleinschreibung wird ignoriert. Dann drücke die Eingabetaste oder den Knopf!",
+  "entry.example": "Zum Beispiel: stra?e → strafe, Straße",
+  "entry.label": "Wörterschema: ",
+  "entry.placeholder": "stra?e",
+  "entry.button": "Los geht's!",
+  "error.title": "Tut mir leid!",
+  "error.pattern": "Ich habe das Schema “%{pattern}” nicht verstanden.",
+  "error.pattern.help": "Es sollte nur Buchstaben (wo bekannt) und Fragezeichen (wo nicht) sein.",
+  "results.title": "Wörter:",
+  "results.none": "Fand leider nichts :(",
+  "results.stats": "%{count} Wörter in %{duration} überprüft"
+}

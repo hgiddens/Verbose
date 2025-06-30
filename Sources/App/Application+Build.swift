@@ -20,6 +20,13 @@ public enum SupportedLanguage: CaseIterable, Sendable, CustomStringConvertible {
     public var wordListResourceURL: URL? {
         return Bundle.module.url(forResource: "words-\(self.description)", withExtension: "txt")
     }
+
+    public var locale: Locale {
+        switch self {
+        case .english: return Locale(identifier: "en_NZ")
+        case .german: return Locale(identifier: "de_DE")
+        }
+    }
 }
 
 public protocol AppArguments {

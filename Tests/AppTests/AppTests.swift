@@ -18,7 +18,7 @@ import Testing
         try await app.test(.router) { client in
             try await client.execute(uri: "/", method: .get) { response in
                 #expect(response.status == .found)
-                #expect(response.headers[.location] == "/en")
+                #expect(response.headers[.location] == "en")
             }
         }
     }
@@ -33,7 +33,7 @@ import Testing
                 headers: [.acceptLanguage: "en-US,en;q=0.9"]
             ) { response in
                 #expect(response.status == .found)
-                #expect(response.headers[.location] == "/en")
+                #expect(response.headers[.location] == "en")
             }
         }
     }
@@ -48,7 +48,7 @@ import Testing
                 headers: [.acceptLanguage: "es-ES,es;q=0.9,fr;q=0.8"]
             ) { response in
                 #expect(response.status == .found)
-                #expect(response.headers[.location] == "/en")
+                #expect(response.headers[.location] == "en")
             }
         }
     }
@@ -61,6 +61,28 @@ import Testing
                 #expect(response.status == .ok)
                 #expect(response.headers[.contentSecurityPolicy] == "frame-ancestors 'none'")
                 #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
+                try #expect(#require(bodyString).contains("<a href=\"de\">de</a>"))
+            }
+        }
+    }
+
+    @Test func testGetGerman() async throws {
+        let args = TestArguments()
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/de", method: .get) { response in
+                #expect(response.status == .ok)
+                #expect(response.headers[.contentType] == "text/html; charset=utf-8")
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
+                try #expect(#require(bodyString).contains("Lösen wir mal ein Wort!"))
+                try #expect(#require(bodyString).contains("<a href=\"en\">en</a>"))
             }
         }
     }

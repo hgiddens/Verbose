@@ -52,7 +52,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
     router.get("/") { request, context in
         let acceptLanguage = request.headers[.acceptLanguage] ?? ""
         let negotiatedLanguage = negotiateLanguage(from: acceptLanguage)
-        return Response(status: .found, headers: [.location: "/\(negotiatedLanguage)"])
+        return Response(status: .found, headers: [.location: "\(negotiatedLanguage)"])
     }
 
     router.get("/:language") { request, context in
@@ -63,7 +63,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
         else {
             throw HTTPError(.notFound)
         }
-        let localizer = Localizer(lingo: lingo, locale: context.locale)
+        let localizer = Localizer(lingo: lingo, language: language)
         return HTMLResponse {
             MainLayout(localizer: localizer, currentLanguage: language) {
                 EntryForm(localizer: localizer)
@@ -79,7 +79,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
             throw HTTPError(.notFound)
         }
         let solver = solvers(language)
-        let localizer = Localizer(lingo: lingo, locale: context.locale)
+        let localizer = Localizer(lingo: lingo, language: language)
         let data = try await request.decode(as: EntryForm.FormData.self, context: context)
         guard let pattern = Pattern(string: data.pattern) else {
             return HTMLResponse {
@@ -91,7 +91,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
         }
 
         let start = ContinuousClock.now
-        let resultSet = try solver.solve(pattern: pattern, locale: context.locale)
+        let resultSet = try solver.solve(pattern: pattern, locale: localizer.locale)
         let end = ContinuousClock.now
 
         return HTMLResponse {
@@ -99,7 +99,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
                 EntryForm(localizer: localizer)
                 WordList(
                     words: Array(resultSet).sorted { (a, b) in
-                        switch a.compare(b, options: .caseInsensitive, locale: context.locale) {
+                        switch a.compare(b, options: .caseInsensitive, locale: localizer.locale) {
                         case .orderedSame:
                             // By default, compare orders attic before Attic
                             // which makes my soul hurt.
@@ -110,7 +110,6 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
                     },
                     corpusSize: solver.totalWords,
                     duration: end - start,
-                    locale: context.locale,
                     localizer: localizer
                 )
             }

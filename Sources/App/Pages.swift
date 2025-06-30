@@ -4,16 +4,18 @@ import Foundation
 
 final class Localizer: Sendable {
     let lingo: Lingo
+    let language: SupportedLanguage
     let locale: Locale
 
-    init(lingo: Lingo, locale: Locale) {
+    init(lingo: Lingo, language: SupportedLanguage) {
         self.lingo = lingo
-        self.locale = locale
+        self.language = language
+        self.locale = language.locale
     }
 
     func localize(_ key: String, interpolations: [String: String]? = nil) -> String {
-        let localeCode = locale.language.languageCode?.identifier ?? "en"
-        return lingo.localize(key, locale: localeCode, interpolations: interpolations ?? [:])
+        return lingo.localize(
+            key, locale: language.description, interpolations: interpolations ?? [:])
     }
 }
 
@@ -120,7 +122,6 @@ struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
     let duration: Duration
-    let locale: Locale
     let localizer: Localizer
 
     var content: some HTML {
@@ -131,7 +132,7 @@ struct WordList: HTML {
                 h3 { localizer.localize("results.title") }
                 ul {
                     ForEach(words) { word in
-                        li { Word(word, locale: locale) }
+                        li { Word(word, locale: localizer.locale) }
                     }
                 }
                 aside {
@@ -141,11 +142,11 @@ struct WordList: HTML {
                                 allowed: [.seconds, .milliseconds],
                                 width: .narrow,
                                 maximumUnitCount: 1,
-                            ).locale(locale))
+                            ).locale(localizer.locale))
                         localizer.localize(
                             "results.stats",
                             interpolations: [
-                                "count": corpusSize.formatted(.number.locale(locale)),
+                                "count": corpusSize.formatted(.number.locale(localizer.locale)),
                                 "duration": durationString,
                             ])
                     }
@@ -167,7 +168,7 @@ struct Footer: HTML {
                     ul {
                         ForEach(otherLanguages) { language in
                             li {
-                                a(.href("/\(language.description)")) { language.description }
+                                a(.href("\(language.description)")) { language.description }
                             }
                         }
                     }
