@@ -57,12 +57,18 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
 
     router.get("/:language") { request, context in
         guard let languageCode = context.parameters.get("language"),
-            SupportedLanguage.allCases.first(where: { $0.description == languageCode }) != nil
+            let language = SupportedLanguage.allCases.first(where: {
+                $0.description == languageCode
+            })
         else {
             throw HTTPError(.notFound)
         }
         let localizer = Localizer(lingo: lingo, locale: context.locale)
-        return HTMLResponse { MainLayout(localizer: localizer) { EntryForm(localizer: localizer) } }
+        return HTMLResponse {
+            MainLayout(localizer: localizer, currentLanguage: language) {
+                EntryForm(localizer: localizer)
+            }
+        }
     }
     router.post("/:language") { request, context in
         guard let languageCode = context.parameters.get("language"),
@@ -77,7 +83,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
         let data = try await request.decode(as: EntryForm.FormData.self, context: context)
         guard let pattern = Pattern(string: data.pattern) else {
             return HTMLResponse {
-                MainLayout(localizer: localizer) {
+                MainLayout(localizer: localizer, currentLanguage: language) {
                     EntryForm(localizer: localizer)
                     BadPattern(pattern: data.pattern, localizer: localizer)
                 }
@@ -89,7 +95,7 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
         let end = ContinuousClock.now
 
         return HTMLResponse {
-            MainLayout(localizer: localizer) {
+            MainLayout(localizer: localizer, currentLanguage: language) {
                 EntryForm(localizer: localizer)
                 WordList(
                     words: Array(resultSet).sorted { (a, b) in

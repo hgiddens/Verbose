@@ -20,8 +20,9 @@ final class Localizer: Sendable {
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
     let localizer: Localizer
+    let currentLanguage: SupportedLanguage
     var title: String { localizer.localize("app.title") }
-    let lang = "en"
+    var lang: String { currentLanguage.description }
 
     @HTMLBuilder var pageContent: Body
 
@@ -39,6 +40,8 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         }
 
         pageContent
+
+        Footer(currentLanguage: currentLanguage)
     }
 }
 
@@ -145,6 +148,28 @@ struct WordList: HTML {
                                 "count": corpusSize.formatted(.number.locale(locale)),
                                 "duration": durationString,
                             ])
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct Footer: HTML {
+    let currentLanguage: SupportedLanguage
+
+    var content: some HTML {
+        let otherLanguages = SupportedLanguage.allCases.filter { $0 != currentLanguage }
+
+        if !otherLanguages.isEmpty {
+            footer {
+                nav {
+                    ul {
+                        ForEach(otherLanguages) { language in
+                            li {
+                                a(.href("/\(language.description)")) { language.description }
+                            }
+                        }
                     }
                 }
             }
