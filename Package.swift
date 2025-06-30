@@ -43,6 +43,7 @@ let package = Package(
             resources: [
                 .copy("Localisations"),
                 .copy("words-en.txt"),
+                .copy("words-de.txt"),
             ],
         ),
         .testTarget(

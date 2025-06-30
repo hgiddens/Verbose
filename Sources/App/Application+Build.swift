@@ -6,12 +6,14 @@ import Solver
 
 public enum SupportedLanguage: CaseIterable, Sendable, CustomStringConvertible {
     case english
+    case german
 
     public static let `default`: SupportedLanguage = .english
 
     public var description: String {
         switch self {
         case .english: return "en"
+        case .german: return "de"
         }
     }
 

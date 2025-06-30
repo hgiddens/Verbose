@@ -80,3 +80,7 @@ swift format -ipr .
 2. POST `/` → Processes pattern, runs solver, renders results with timing information
 
 The application uses custom request contexts (`AppRequestContext`) for locale-aware processing and includes request logging middleware.
+
+## Memories
+
+- Don't ignore the instructions that have been provided to you in this file.
