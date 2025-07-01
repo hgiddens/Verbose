@@ -1,6 +1,4 @@
 import Elementary
-import Foundation
-@preconcurrency import Lingo
 
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
