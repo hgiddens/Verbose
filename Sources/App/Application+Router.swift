@@ -8,8 +8,6 @@ struct AppRequestContext: RequestContext {
     var coreContext: CoreRequestContextStorage
     var requestDecoder: URLEncodedFormDecoder { .init() }
 
-    let locale: Locale = .init(identifier: "en_NZ")
-
     init(source: Source) {
         self.coreContext = .init(source: source)
     }
