@@ -1,21 +1,11 @@
-import Foundation
 import Hummingbird
 import Logging
-import Solver
 
 public protocol AppArguments {
     var hostname: String { get }
     var logLevel: Logger.Level? { get }
     var port: Int { get }
-}
-
-private func buildSolver() throws -> Solver {
-    // This runs at app startup and will never change, so I'm not going to
-    // bother defining a custom error type to deal with it "properly".
-    let url = Bundle.module.url(forResource: "words", withExtension: "txt")!
-    let contents = try String(contentsOf: url, encoding: .utf8)
-    let lines = contents.components(separatedBy: .newlines)
-    return Solver(words: lines)
+    var languages: [SupportedLanguage] { get }
 }
 
 public func buildApplication(_ arguments: some AppArguments) async throws
@@ -31,9 +21,12 @@ public func buildApplication(_ arguments: some AppArguments) async throws
             ?? .info
         return logger
     }()
-    let solver = try buildSolver()
-    logger.debug("Loaded word list with \(solver.totalWords) words")
-    let router = buildRouter(solver: solver)
+    for language in arguments.languages {
+        logger.debug(
+            "Loaded word list for \(language.languageCode) with \(language.solver.totalWords) words"
+        )
+    }
+    let router = buildRouter(supportedLanguages: arguments.languages)
     return Application(
         router: router,
         configuration: .init(

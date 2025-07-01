@@ -1,10 +1,12 @@
 import Elementary
-import Foundation
 
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
-    let title = "Verbose"
-    let lang = "en"
+    let language: SupportedLanguage
+    let supportedLanguages: [SupportedLanguage]
+
+    var title: String { language.localize("app.title") }
+    var lang: String { language.languageCode }
 
     @HTMLBuilder var pageContent: Body
 
@@ -17,42 +19,44 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         header {
             hgroup {
                 h1 { title }
-                h2 { "Because words shouldn't make you cross" }
+                h2 { language.localize("app.subtitle") }
             }
         }
 
         pageContent
+
+        Footer(currentLanguage: language, supportedLanguages: supportedLanguages)
     }
 }
 
 struct EntryForm: HTML {
+    let language: SupportedLanguage
+
     struct FormData: Decodable {
         let pattern: String
     }
 
     var content: some HTML {
         section {
-            h3 { "Let's solve a word!" }
+            h3 { language.localize("entry.title") }
             p {
-                "Enter a word, replacing unknown letters with a question mark. "
-                "Case is ignored. "
-                "Then hit enter or press the button!"
+                language.localize("entry.instructions")
             }
-            p { "For example: v?r?o?e → variole, verbose" }
+            p { language.localize("entry.example") }
             form(.method(.post)) {
                 p {
-                    label(.for("pattern")) { "Word pattern: " }
+                    label(.for("pattern")) { language.localize("entry.label") }
                     input(
                         .id("pattern"),
                         .name("pattern"),
-                        .placeholder("v?r?o?e"),
+                        .placeholder(language.localize("entry.placeholder")),
                         .type(.text),
                         .required,
                         .autocomplete(.off),
                     )
                 }
                 p {
-                    input(.type(.submit), .value("Let's go!"))
+                    input(.type(.submit), .value(language.localize("entry.button")))
                 }
             }
         }
@@ -61,30 +65,28 @@ struct EntryForm: HTML {
 
 struct BadPattern: HTML {
     let pattern: String
+    let language: SupportedLanguage
+
     var content: some HTML {
         section {
-            h3 { "Sorry!" }
-            p { "I didn't understand the pattern “\(pattern)”." }
-            p { "It should only be letters (where known) and question marks (where not)." }
+            h3 { language.localize("error.title") }
+            p {
+                language.localize("error.pattern", interpolations: ["pattern": pattern])
+            }
+            p { language.localize("error.pattern.help") }
         }
     }
 }
 
 struct Word: HTML {
     let word: String
-    let locale: Locale
-
-    init(_ word: String, locale: Locale) {
-        self.word = word
-        self.locale = locale
-    }
+    let language: SupportedLanguage
 
     var content: some HTML {
-        let lang = locale.language.languageCode?.identifier ?? "en"
         word
         " "
         a(
-            .href("https://\(lang).wiktionary.org/wiki/\(word)"), .target(.blank),
+            .href("https://\(language.languageCode).wiktionary.org/wiki/\(word)"), .target(.blank),
             .rel("noopener noreferrer")
         ) {
             "📖"
@@ -96,17 +98,17 @@ struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
     let duration: Duration
-    let locale: Locale
+    let language: SupportedLanguage
 
     var content: some HTML {
         section {
             if words.count == 0 {
-                p { "No words found :(" }
+                p { language.localize("results.none") }
             } else {
-                h3 { "Words:" }
+                h3 { language.localize("results.title") }
                 ul {
                     ForEach(words) { word in
-                        li { Word(word, locale: locale) }
+                        li { Word(word: word, language: language) }
                     }
                 }
                 aside {
@@ -116,8 +118,38 @@ struct WordList: HTML {
                                 allowed: [.seconds, .milliseconds],
                                 width: .narrow,
                                 maximumUnitCount: 1,
-                            ).locale(locale))
-                        "Checked \(corpusSize.formatted(.number.locale(locale))) words in \(durationString)"
+                            ).locale(language.locale))
+                        language.localize(
+                            "results.stats",
+                            interpolations: [
+                                "count": corpusSize.formatted(.number.locale(language.locale)),
+                                "duration": durationString,
+                            ])
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct Footer: HTML {
+    let currentLanguage: SupportedLanguage
+    let supportedLanguages: [SupportedLanguage]
+
+    var content: some HTML {
+        let otherLanguages = supportedLanguages.filter {
+            $0.languageCode != currentLanguage.languageCode
+        }
+
+        if !otherLanguages.isEmpty {
+            footer {
+                nav {
+                    ul {
+                        ForEach(otherLanguages) { language in
+                            li {
+                                a(.href("\(language.languageCode)")) { language.languageCode }
+                            }
+                        }
                     }
                 }
             }

@@ -9,6 +9,7 @@ struct AppCommand: AsyncParsableCommand, AppArguments {
     @Option var hostname = "127.0.0.1"
     @Option var logLevel: Logger.Level?
     @Option var port = 8080
+    @Option var languages: [SupportedLanguage]
 
     func run() async throws {
         let app = try await buildApplication(self)

@@ -27,4 +27,4 @@ FROM scratch AS release
 EXPOSE 8080
 COPY --from=build /workspace/dist /usr/local/bin/
 
-ENTRYPOINT ["/usr/local/bin/Verbose", "--hostname", "0.0.0.0"]
+ENTRYPOINT ["/usr/local/bin/Verbose", "--hostname", "0.0.0.0", "--languages=en_NZ", "--languages=de_CH"]
