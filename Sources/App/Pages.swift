@@ -2,29 +2,13 @@ import Elementary
 import Foundation
 @preconcurrency import Lingo
 
-final class Localizer: Sendable {
-    let lingo: Lingo
-    let language: SupportedLanguage
-    let locale: Locale
-
-    init(lingo: Lingo, language: SupportedLanguage) {
-        self.lingo = lingo
-        self.language = language
-        self.locale = language.locale
-    }
-
-    func localize(_ key: String, interpolations: [String: String]? = nil) -> String {
-        return lingo.localize(
-            key, locale: language.description, interpolations: interpolations ?? [:])
-    }
-}
-
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
-    let localizer: Localizer
+    let language: SupportedLanguage
     let currentLanguage: SupportedLanguage
-    var title: String { localizer.localize("app.title") }
-    var lang: String { currentLanguage.description }
+    let supportedLanguages: [SupportedLanguage]
+    var title: String { language.localize("app.title") }
+    var lang: String { currentLanguage.languageCode }
 
     @HTMLBuilder var pageContent: Body
 
@@ -37,18 +21,18 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         header {
             hgroup {
                 h1 { title }
-                h2 { localizer.localize("app.subtitle") }
+                h2 { language.localize("app.subtitle") }
             }
         }
 
         pageContent
 
-        Footer(currentLanguage: currentLanguage)
+        Footer(currentLanguage: currentLanguage, supportedLanguages: supportedLanguages)
     }
 }
 
 struct EntryForm: HTML {
-    let localizer: Localizer
+    let language: SupportedLanguage
 
     struct FormData: Decodable {
         let pattern: String
@@ -56,25 +40,25 @@ struct EntryForm: HTML {
 
     var content: some HTML {
         section {
-            h3 { localizer.localize("entry.title") }
+            h3 { language.localize("entry.title") }
             p {
-                localizer.localize("entry.instructions")
+                language.localize("entry.instructions")
             }
-            p { localizer.localize("entry.example") }
+            p { language.localize("entry.example") }
             form(.method(.post)) {
                 p {
-                    label(.for("pattern")) { localizer.localize("entry.label") }
+                    label(.for("pattern")) { language.localize("entry.label") }
                     input(
                         .id("pattern"),
                         .name("pattern"),
-                        .placeholder(localizer.localize("entry.placeholder")),
+                        .placeholder(language.localize("entry.placeholder")),
                         .type(.text),
                         .required,
                         .autocomplete(.off),
                     )
                 }
                 p {
-                    input(.type(.submit), .value(localizer.localize("entry.button")))
+                    input(.type(.submit), .value(language.localize("entry.button")))
                 }
             }
         }
@@ -83,15 +67,15 @@ struct EntryForm: HTML {
 
 struct BadPattern: HTML {
     let pattern: String
-    let localizer: Localizer
+    let language: SupportedLanguage
 
     var content: some HTML {
         section {
-            h3 { localizer.localize("error.title") }
+            h3 { language.localize("error.title") }
             p {
-                localizer.localize("error.pattern", interpolations: ["pattern": pattern])
+                language.localize("error.pattern", interpolations: ["pattern": pattern])
             }
-            p { localizer.localize("error.pattern.help") }
+            p { language.localize("error.pattern.help") }
         }
     }
 }
@@ -122,17 +106,17 @@ struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
     let duration: Duration
-    let localizer: Localizer
+    let language: SupportedLanguage
 
     var content: some HTML {
         section {
             if words.count == 0 {
-                p { localizer.localize("results.none") }
+                p { language.localize("results.none") }
             } else {
-                h3 { localizer.localize("results.title") }
+                h3 { language.localize("results.title") }
                 ul {
                     ForEach(words) { word in
-                        li { Word(word, locale: localizer.locale) }
+                        li { Word(word, locale: language.locale) }
                     }
                 }
                 aside {
@@ -142,11 +126,11 @@ struct WordList: HTML {
                                 allowed: [.seconds, .milliseconds],
                                 width: .narrow,
                                 maximumUnitCount: 1,
-                            ).locale(localizer.locale))
-                        localizer.localize(
+                            ).locale(language.locale))
+                        language.localize(
                             "results.stats",
                             interpolations: [
-                                "count": corpusSize.formatted(.number.locale(localizer.locale)),
+                                "count": corpusSize.formatted(.number.locale(language.locale)),
                                 "duration": durationString,
                             ])
                     }
@@ -158,9 +142,12 @@ struct WordList: HTML {
 
 struct Footer: HTML {
     let currentLanguage: SupportedLanguage
+    let supportedLanguages: [SupportedLanguage]
 
     var content: some HTML {
-        let otherLanguages = SupportedLanguage.allCases.filter { $0 != currentLanguage }
+        let otherLanguages = supportedLanguages.filter {
+            $0.languageCode != currentLanguage.languageCode
+        }
 
         if !otherLanguages.isEmpty {
             footer {
@@ -168,7 +155,7 @@ struct Footer: HTML {
                     ul {
                         ForEach(otherLanguages) { language in
                             li {
-                                a(.href("\(language.description)")) { language.description }
+                                a(.href("\(language.languageCode)")) { language.languageCode }
                             }
                         }
                     }

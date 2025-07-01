@@ -11,7 +11,8 @@ struct AppCommand: AsyncParsableCommand, AppArguments {
     @Option var port = 8080
 
     func run() async throws {
-        let app = try await buildApplication(self)
+        let supportedLanguages = try buildSupportedLanguages()
+        let app = try await buildApplication(self, supportedLanguages: supportedLanguages)
         try await app.runService()
     }
 }

@@ -1,6 +1,9 @@
+import Foundation
 import Hummingbird
 import HummingbirdTesting
+@preconcurrency import Lingo
 import Logging
+import Solver
 import Testing
 
 @testable import Verbose
@@ -12,9 +15,34 @@ import Testing
         let port = 0
     }
 
+    func createTestLingo() throws -> Lingo {
+        try Lingo(dataSource: TestLocalizationDataSource(), defaultLocale: "en")
+    }
+
+    func createTestSupportedLanguages() throws -> [SupportedLanguage] {
+        let lingo = try createTestLingo()
+
+        let englishSolver = Solver(words: ["xylophone", "test", "word", "example"])
+        let englishLanguage = SupportedLanguage(
+            locale: Locale(identifier: "en_NZ"),
+            solver: englishSolver,
+            lingo: lingo
+        )
+
+        let germanSolver = Solver(words: ["test", "wort", "beispiel"])
+        let germanLanguage = SupportedLanguage(
+            locale: Locale(identifier: "de_DE"),
+            solver: germanSolver,
+            lingo: lingo
+        )
+
+        return [englishLanguage, germanLanguage]
+    }
+
     @Test func testRedirectDefault() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(uri: "/", method: .get) { response in
                 #expect(response.status == .found)
@@ -25,7 +53,8 @@ import Testing
 
     @Test func testAcceptLanguageNegotiation() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(
                 uri: "/",
@@ -40,7 +69,8 @@ import Testing
 
     @Test func testAcceptLanguageUnsupported() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(
                 uri: "/",
@@ -55,7 +85,8 @@ import Testing
 
     @Test func testGet() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(uri: "/en", method: .get) { response in
                 #expect(response.status == .ok)
@@ -72,7 +103,8 @@ import Testing
 
     @Test func testGetGerman() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(uri: "/de", method: .get) { response in
                 #expect(response.status == .ok)
@@ -89,7 +121,8 @@ import Testing
 
     @Test func testPostWithGoodPattern() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(
                 uri: "/en",
@@ -111,7 +144,8 @@ import Testing
 
     @Test func testPostWithBadPattern() async throws {
         let args = TestArguments()
-        let app = try await buildApplication(args)
+        let supportedLanguages = try createTestSupportedLanguages()
+        let app = try await buildApplication(args, supportedLanguages: supportedLanguages)
         try await app.test(.router) { client in
             try await client.execute(
                 uri: "/en",

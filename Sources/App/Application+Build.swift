@@ -4,59 +4,45 @@ import Hummingbird
 import Logging
 import Solver
 
-public enum SupportedLanguage: CaseIterable, Sendable, CustomStringConvertible {
-    case english
-    case german
-
-    public static let `default`: SupportedLanguage = .english
-
-    public var description: String {
-        switch self {
-        case .english: return "en"
-        case .german: return "de"
-        }
-    }
-
-    public var wordListResourceURL: URL? {
-        return Bundle.module.url(forResource: "words-\(self.description)", withExtension: "txt")
-    }
-
-    public var locale: Locale {
-        switch self {
-        case .english: return Locale(identifier: "en_NZ")
-        case .german: return Locale(identifier: "de_DE")
-        }
-    }
-}
-
 public protocol AppArguments {
     var hostname: String { get }
     var logLevel: Logger.Level? { get }
     var port: Int { get }
 }
 
-private func buildSolvers() throws -> @Sendable (SupportedLanguage) -> Solver {
+func buildSupportedLanguages() throws -> [SupportedLanguage] {
     // This runs at app startup and will never change, so I'm not going to
     // bother defining a custom error type to deal with it "properly".
-    var solversDict: [SupportedLanguage: Solver] = [:]
+    let availableLanguageCodes = ["en", "de"]
+    let localeMap: [String: Locale] = [
+        "en": Locale(identifier: "en_NZ"),
+        "de": Locale(identifier: "de_DE"),
+    ]
 
-    for language in SupportedLanguage.allCases {
-        let url = language.wordListResourceURL!
+    let lingo = try buildLingo()
+    var supportedLanguages: [SupportedLanguage] = []
+
+    for languageCode in availableLanguageCodes {
+        let locale = localeMap[languageCode]!
+        let url = Bundle.module.url(forResource: "words-\(languageCode)", withExtension: "txt")!
         let contents = try String(contentsOf: url, encoding: .utf8)
         let lines = contents.components(separatedBy: .newlines)
-        solversDict[language] = Solver(words: lines)
+        let solver = Solver(words: lines)
+
+        supportedLanguages.append(SupportedLanguage(locale: locale, solver: solver, lingo: lingo))
     }
 
-    let solvers = solversDict  // Make immutable
-    return { language in solvers[language]! }
+    return supportedLanguages
 }
 
-private func buildLingo() throws -> Lingo {
+func buildLingo() throws -> Lingo {
     let localizationsURL = Bundle.module.url(forResource: "Localisations", withExtension: nil)!
     return try Lingo(rootPath: localizationsURL.path, defaultLocale: "en")
 }
 
-public func buildApplication(_ arguments: some AppArguments) async throws
+public func buildApplication(
+    _ arguments: some AppArguments, supportedLanguages: [SupportedLanguage]
+) async throws
     -> some ApplicationProtocol
 {
     let environment = Environment()
@@ -69,14 +55,12 @@ public func buildApplication(_ arguments: some AppArguments) async throws
             ?? .info
         return logger
     }()
-    let solvers = try buildSolvers()
-    for language in SupportedLanguage.allCases {
-        let solver = solvers(language)
-        logger.debug("Loaded word list for \(language) with \(solver.totalWords) words")
+    for language in supportedLanguages {
+        logger.debug(
+            "Loaded word list for \(language.languageCode) with \(language.solver.totalWords) words"
+        )
     }
-    let lingo = try buildLingo()
-    logger.debug("Loaded localisations")
-    let router = buildRouter(solvers: solvers, lingo: lingo)
+    let router = buildRouter(supportedLanguages: supportedLanguages)
     return Application(
         router: router,
         configuration: .init(

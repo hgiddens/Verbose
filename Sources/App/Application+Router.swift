@@ -13,8 +13,10 @@ struct AppRequestContext: RequestContext {
     }
 }
 
-private func negotiateLanguage(from acceptLanguage: String) -> SupportedLanguage {
-    let supportedCodes = Set(SupportedLanguage.allCases.map { $0.description })
+private func negotiateLanguage(from acceptLanguage: String, supportedLanguages: [SupportedLanguage])
+    -> SupportedLanguage
+{
+    let supportedCodes = Set(supportedLanguages.map { $0.languageCode })
 
     let languages =
         acceptLanguage
@@ -30,16 +32,24 @@ private func negotiateLanguage(from acceptLanguage: String) -> SupportedLanguage
 
     for (lang, _) in languages {
         if supportedCodes.contains(lang) {
-            return SupportedLanguage.allCases.first { $0.description == lang }!
+            return supportedLanguages.first { $0.languageCode == lang }!
         }
     }
 
-    return SupportedLanguage.default
+    return supportedLanguages[0]  // Use first language as default
 }
 
-func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lingo: Lingo)
+func buildRouter(supportedLanguages: [SupportedLanguage])
     -> Router<AppRequestContext>
 {
+    precondition(!supportedLanguages.isEmpty, "Must have at least one supported language")
+
+    let languageCodes = supportedLanguages.map { $0.languageCode }
+    let uniqueLanguageCodes = Set(languageCodes)
+    precondition(
+        languageCodes.count == uniqueLanguageCodes.count,
+        "All supported languages must have unique language codes")
+
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
@@ -49,67 +59,64 @@ func buildRouter(solvers: @escaping @Sendable (SupportedLanguage) -> Solver, lin
     // Add routes
     router.get("/") { request, context in
         let acceptLanguage = request.headers[.acceptLanguage] ?? ""
-        let negotiatedLanguage = negotiateLanguage(from: acceptLanguage)
-        return Response(status: .found, headers: [.location: "\(negotiatedLanguage)"])
+        let negotiatedLanguage = negotiateLanguage(
+            from: acceptLanguage, supportedLanguages: supportedLanguages)
+        return Response(status: .found, headers: [.location: "\(negotiatedLanguage.languageCode)"])
     }
 
-    router.get("/:language") { request, context in
-        guard let languageCode = context.parameters.get("language"),
-            let language = SupportedLanguage.allCases.first(where: {
-                $0.description == languageCode
-            })
-        else {
-            throw HTTPError(.notFound)
-        }
-        let localizer = Localizer(lingo: lingo, language: language)
-        return HTMLResponse {
-            MainLayout(localizer: localizer, currentLanguage: language) {
-                EntryForm(localizer: localizer)
-            }
-        }
-    }
-    router.post("/:language") { request, context in
-        guard let languageCode = context.parameters.get("language"),
-            let language = SupportedLanguage.allCases.first(where: {
-                $0.description == languageCode
-            })
-        else {
-            throw HTTPError(.notFound)
-        }
-        let solver = solvers(language)
-        let localizer = Localizer(lingo: lingo, language: language)
-        let data = try await request.decode(as: EntryForm.FormData.self, context: context)
-        guard let pattern = Pattern(string: data.pattern) else {
+    for language in supportedLanguages {
+        router.get("/\(language.languageCode)") { request, context in
             return HTMLResponse {
-                MainLayout(localizer: localizer, currentLanguage: language) {
-                    EntryForm(localizer: localizer)
-                    BadPattern(pattern: data.pattern, localizer: localizer)
+                MainLayout(
+                    language: language, currentLanguage: language,
+                    supportedLanguages: supportedLanguages
+                ) {
+                    EntryForm(language: language)
                 }
             }
         }
 
-        let start = ContinuousClock.now
-        let resultSet = try solver.solve(pattern: pattern, locale: localizer.locale)
-        let end = ContinuousClock.now
+        router.post("/\(language.languageCode)") { request, context in
+            let data = try await request.decode(as: EntryForm.FormData.self, context: context)
+            guard let pattern = Pattern(string: data.pattern) else {
+                return HTMLResponse {
+                    MainLayout(
+                        language: language, currentLanguage: language,
+                        supportedLanguages: supportedLanguages
+                    ) {
+                        EntryForm(language: language)
+                        BadPattern(pattern: data.pattern, language: language)
+                    }
+                }
+            }
 
-        return HTMLResponse {
-            MainLayout(localizer: localizer, currentLanguage: language) {
-                EntryForm(localizer: localizer)
-                WordList(
-                    words: Array(resultSet).sorted { (a, b) in
-                        switch a.compare(b, options: .caseInsensitive, locale: localizer.locale) {
-                        case .orderedSame:
-                            // By default, compare orders attic before Attic
-                            // which makes my soul hurt.
-                            return a < b
-                        case let ordering:
-                            return ordering == .orderedAscending
-                        }
-                    },
-                    corpusSize: solver.totalWords,
-                    duration: end - start,
-                    localizer: localizer
-                )
+            let start = ContinuousClock.now
+            let resultSet = try language.solver.solve(pattern: pattern, locale: language.locale)
+            let end = ContinuousClock.now
+
+            return HTMLResponse {
+                MainLayout(
+                    language: language, currentLanguage: language,
+                    supportedLanguages: supportedLanguages
+                ) {
+                    EntryForm(language: language)
+                    WordList(
+                        words: Array(resultSet).sorted { (a, b) in
+                            switch a.compare(b, options: .caseInsensitive, locale: language.locale)
+                            {
+                            case .orderedSame:
+                                // By default, compare orders attic before Attic
+                                // which makes my soul hurt.
+                                return a < b
+                            case let ordering:
+                                return ordering == .orderedAscending
+                            }
+                        },
+                        corpusSize: language.solver.totalWords,
+                        duration: end - start,
+                        language: language
+                    )
+                }
             }
         }
     }
