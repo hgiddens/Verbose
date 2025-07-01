@@ -5,10 +5,10 @@ import Foundation
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
     let language: SupportedLanguage
-    let currentLanguage: SupportedLanguage
     let supportedLanguages: [SupportedLanguage]
+
     var title: String { language.localize("app.title") }
-    var lang: String { currentLanguage.languageCode }
+    var lang: String { language.languageCode }
 
     @HTMLBuilder var pageContent: Body
 
@@ -27,7 +27,7 @@ struct MainLayout<Body: HTML>: HTMLDocument {
 
         pageContent
 
-        Footer(currentLanguage: currentLanguage, supportedLanguages: supportedLanguages)
+        Footer(currentLanguage: language, supportedLanguages: supportedLanguages)
     }
 }
 
@@ -82,19 +82,13 @@ struct BadPattern: HTML {
 
 struct Word: HTML {
     let word: String
-    let locale: Locale
-
-    init(_ word: String, locale: Locale) {
-        self.word = word
-        self.locale = locale
-    }
+    let language: SupportedLanguage
 
     var content: some HTML {
-        let lang = locale.language.languageCode?.identifier ?? "en"
         word
         " "
         a(
-            .href("https://\(lang).wiktionary.org/wiki/\(word)"), .target(.blank),
+            .href("https://\(language.languageCode).wiktionary.org/wiki/\(word)"), .target(.blank),
             .rel("noopener noreferrer")
         ) {
             "📖"
@@ -116,7 +110,7 @@ struct WordList: HTML {
                 h3 { language.localize("results.title") }
                 ul {
                     ForEach(words) { word in
-                        li { Word(word, locale: language.locale) }
+                        li { Word(word: word, language: language) }
                     }
                 }
                 aside {

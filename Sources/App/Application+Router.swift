@@ -43,11 +43,9 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     -> Router<AppRequestContext>
 {
     precondition(!supportedLanguages.isEmpty, "Must have at least one supported language")
-
-    let languageCodes = supportedLanguages.map { $0.languageCode }
-    let uniqueLanguageCodes = Set(languageCodes)
+    let uniqueLanguageCodes = Set(supportedLanguages.map { $0.languageCode })
     precondition(
-        languageCodes.count == uniqueLanguageCodes.count,
+        supportedLanguages.count == uniqueLanguageCodes.count,
         "All supported languages must have unique language codes")
 
     let router = Router(context: AppRequestContext.self)
@@ -68,7 +66,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
         router.get("/\(language.languageCode)") { request, context in
             return HTMLResponse {
                 MainLayout(
-                    language: language, currentLanguage: language,
+                    language: language,
                     supportedLanguages: supportedLanguages
                 ) {
                     EntryForm(language: language)
@@ -81,7 +79,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
             guard let pattern = Pattern(string: data.pattern) else {
                 return HTMLResponse {
                     MainLayout(
-                        language: language, currentLanguage: language,
+                        language: language,
                         supportedLanguages: supportedLanguages
                     ) {
                         EntryForm(language: language)
@@ -96,7 +94,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
 
             return HTMLResponse {
                 MainLayout(
-                    language: language, currentLanguage: language,
+                    language: language,
                     supportedLanguages: supportedLanguages
                 ) {
                     EntryForm(language: language)
