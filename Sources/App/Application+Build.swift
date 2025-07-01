@@ -19,7 +19,7 @@ func buildSupportedLanguages() throws -> [SupportedLanguage] {
         "de": Locale(identifier: "de_DE"),
     ]
 
-    let lingo = try buildLingo()
+    let lingo = try Lingo.fromBundleLocalisations
     var supportedLanguages: [SupportedLanguage] = []
 
     for languageCode in availableLanguageCodes {
@@ -35,9 +35,12 @@ func buildSupportedLanguages() throws -> [SupportedLanguage] {
     return supportedLanguages
 }
 
-func buildLingo() throws -> Lingo {
-    let localizationsURL = Bundle.module.url(forResource: "Localisations", withExtension: nil)!
-    return try Lingo(rootPath: localizationsURL.path, defaultLocale: "en")
+extension Lingo {
+    private static let _fromBundleLocalisations: Result<Lingo, Error> = Result {
+        let localizationsURL = Bundle.module.url(forResource: "Localisations", withExtension: nil)!
+        return try Lingo(rootPath: localizationsURL.path, defaultLocale: "en")
+    }
+    static var fromBundleLocalisations: Lingo { get throws { try _fromBundleLocalisations.get() } }
 }
 
 public func buildApplication(
