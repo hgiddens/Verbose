@@ -1,4 +1,22 @@
 import Elementary
+import Foundation
+@preconcurrency import Lingo
+import Solver
+
+private enum AppEnvironment {
+    @TaskLocal static var language: SupportedLanguage? = nil
+    @TaskLocal static var supportedLanguages: [SupportedLanguage] = []
+}
+
+extension HTML {
+    fileprivate func withAppEnvironment(
+        language: SupportedLanguage, supportedLanguages: [SupportedLanguage]
+    ) -> some HTML {
+        self
+            .environment(AppEnvironment.$language, language)
+            .environment(AppEnvironment.$supportedLanguages, supportedLanguages)
+    }
+}
 
 extension MainLayout: Sendable where Body: Sendable {}
 struct MainLayout<Body: HTML>: HTMLDocument {
@@ -23,14 +41,14 @@ struct MainLayout<Body: HTML>: HTMLDocument {
             }
         }
 
-        pageContent
+        pageContent.withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
 
-        Footer(currentLanguage: language, supportedLanguages: supportedLanguages)
+        Footer().withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
     }
 }
 
 struct EntryForm: HTML {
-    let language: SupportedLanguage
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     struct FormData: Decodable {
         let pattern: String
@@ -65,7 +83,7 @@ struct EntryForm: HTML {
 
 struct BadPattern: HTML {
     let pattern: String
-    let language: SupportedLanguage
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
         section {
@@ -80,7 +98,7 @@ struct BadPattern: HTML {
 
 struct Word: HTML {
     let word: String
-    let language: SupportedLanguage
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
         word
@@ -98,7 +116,7 @@ struct WordList: HTML {
     let words: [String]
     let corpusSize: Int
     let duration: Duration
-    let language: SupportedLanguage
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
         section {
@@ -108,7 +126,7 @@ struct WordList: HTML {
                 h3 { language.localize("results.title") }
                 ul {
                     ForEach(words) { word in
-                        li { Word(word: word, language: language) }
+                        li { Word(word: word) }
                     }
                 }
                 aside {
@@ -133,8 +151,8 @@ struct WordList: HTML {
 }
 
 struct Footer: HTML {
-    let currentLanguage: SupportedLanguage
-    let supportedLanguages: [SupportedLanguage]
+    @Environment(AppEnvironment.$language) var currentLanguage: SupportedLanguage!
+    @Environment(AppEnvironment.$supportedLanguages) var supportedLanguages
 
     var content: some HTML {
         let otherLanguages = supportedLanguages.filter {

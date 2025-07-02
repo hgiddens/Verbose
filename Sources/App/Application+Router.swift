@@ -67,7 +67,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     language: language,
                     supportedLanguages: supportedLanguages
                 ) {
-                    EntryForm(language: language)
+                    EntryForm()
                 }
             }
         }
@@ -80,8 +80,8 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                         language: language,
                         supportedLanguages: supportedLanguages
                     ) {
-                        EntryForm(language: language)
-                        BadPattern(pattern: data.pattern, language: language)
+                        EntryForm()
+                        BadPattern(pattern: data.pattern)
                     }
                 }
             }
@@ -95,7 +95,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     language: language,
                     supportedLanguages: supportedLanguages
                 ) {
-                    EntryForm(language: language)
+                    EntryForm()
                     WordList(
                         words: Array(resultSet).sorted { (a, b) in
                             switch a.compare(b, options: .caseInsensitive, locale: language.locale)
@@ -109,8 +109,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                             }
                         },
                         corpusSize: language.solver.totalWords,
-                        duration: end - start,
-                        language: language
+                        duration: end - start
                     )
                 }
             }
