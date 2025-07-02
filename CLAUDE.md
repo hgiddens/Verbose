@@ -9,11 +9,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Build the project
 swift build
 
-# Run the application
-swift run
+# Run the application (requires language arguments)
+swift run Verbose --languages en de
 
 # Run with specific configuration
-swift run -c release
+swift run -c release Verbose --languages en de
+
+# Run with custom hostname/port
+swift run Verbose --hostname 0.0.0.0 --port 3000 --languages en de
 ```
 
 ### Testing
@@ -34,8 +37,8 @@ swift package update
 # Clean build artifacts
 swift package clean
 
-# Generate Xcode project (if needed)
-swift package generate-xcodeproj
+# Reset build directory
+swift package reset
 ```
 
 ### Code Formatting
@@ -53,33 +56,38 @@ swift format -ipr .
 
 ## Architecture Overview
 
-**Verbose** is a Swift web application for solving word puzzles using pattern matching. It's built with the Hummingbird web framework and uses server-side HTML rendering via Elementary.
+**Verbose** is a multilingual Swift web application for solving word puzzles using pattern matching. It's built with the Hummingbird web framework and uses server-side HTML rendering via Elementary.
 
 ### Key Components
 
 - **Solver Module** (`Sources/Solver/`): Core pattern matching logic
   - `Pattern`: Regex-based pattern matcher with diacritics support for locale-aware matching
-  - `Solver`: Word corpus searcher using pattern matching
+  - `CompiledPattern`: Internal regex compilation with locale-specific folding
+  - `Solver`: Word corpus searcher using pattern matching, organised by word length
 
 - **App Module** (`Sources/App/`): Web application implementation
   - `App.swift`: Main entry point with CLI argument parsing using ArgumentParser
-  - `Application+Build.swift`: Application bootstrap, dependency injection, and word list loading
-  - `Application+Router.swift`: HTTP routing and request handling with form processing
+  - `Application+Build.swift`: Application bootstrap, dependency injection, and language loading
+  - `Application+Router.swift`: HTTP routing, language negotiation, form processing
   - `Pages.swift`: Server-side HTML templates using Elementary framework
+  - `SupportedLanguage.swift`: Language configuration with localisation support
+  - `SecurityHeadersMiddleware.swift`: Security headers middleware
 
 ### Technical Details
 
-- **Framework Stack**: Hummingbird (web server) + Elementary (HTML DSL) + ArgumentParser (CLI)
+- **Framework Stack**: Hummingbird (web server) + Elementary (HTML DSL) + ArgumentParser (CLI) + Lingo (i18n)
 - **Architecture Pattern**: Request/response with server-side rendering
-- **Localization**: Uses `en_NZ` locale for string comparison and number formatting
-- **Word Corpus**: Loaded from `words.txt` resource file at application startup
+- **Multilingual Support**: Content negotiation via Accept-Language headers, localised content via Lingo
+- **Word Corpora**: Language-specific word lists (`words-en.txt`, `words-de.txt`) loaded at startup
 - **Pattern Format**: Letters with `?` as wildcard (e.g., `v?r?o?e` matches `verbose`)
+- **Performance**: Words indexed by length for efficient pattern matching
 
 ### Request Flow
-1. GET `/` → Renders entry form
-2. POST `/` → Processes pattern, runs solver, renders results with timing information
+1. GET `/` → Language negotiation via Accept-Language → Redirect to `/[lang]`
+2. GET `/[lang]` → Renders localised entry form
+3. POST `/[lang]` → Processes pattern, runs solver, renders results with timing information
 
-The application uses custom request contexts (`AppRequestContext`) for locale-aware processing and includes request logging middleware.
+The application supports multiple languages simultaneously via command-line arguments and uses custom request contexts (`AppRequestContext`) for form processing.
 
 ## Memories
 
