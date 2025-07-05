@@ -5,16 +5,11 @@ import Solver
 
 private enum AppEnvironment {
     @TaskLocal static var language: SupportedLanguage? = nil
-    @TaskLocal static var supportedLanguages: [SupportedLanguage] = []
 }
 
 extension HTML {
-    fileprivate func withAppEnvironment(
-        language: SupportedLanguage, supportedLanguages: [SupportedLanguage]
-    ) -> some HTML {
-        self
-            .environment(AppEnvironment.$language, language)
-            .environment(AppEnvironment.$supportedLanguages, supportedLanguages)
+    fileprivate func withAppEnvironment(language: SupportedLanguage) -> some HTML {
+        self.environment(AppEnvironment.$language, language)
     }
 }
 
@@ -31,6 +26,16 @@ struct MainLayout<Body: HTML>: HTMLDocument {
     var head: some HTML {
         meta(.charset(.utf8))
         meta(.name(.viewport), .content("width=device-width, initial-scale=1.0"))
+
+        // Help web fonts load faster. I think this could be a middleware (there's a header which
+        // triggers preconnect even earlier) but that feels like it might be a little
+        // over-engineered for this.
+        link(.rel("preconnect"), .href("https://fonts.googleapis.com"))
+        link(.rel("preconnect"), .href("https://fonts.gstatic.com"), .crossorigin(.anonymous))
+        link(
+            .rel(.stylesheet),
+            .href("https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap")
+        )
     }
 
     var body: some HTML {
@@ -41,9 +46,26 @@ struct MainLayout<Body: HTML>: HTMLDocument {
             }
         }
 
-        pageContent.withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
+        let otherLanguages = supportedLanguages.filter {
+            $0.languageCode != language.languageCode
+        }
+        // TODO: should this be in the header?
+        nav {
+            ul {
+                ForEach(otherLanguages) { language in
+                    li {
+                        a(.href("\(language.languageCode)")) {
+                            // TODO: aren't I guaranteed that _my_ locales have a language code?
+                            language.locale.localizedString(
+                                forLanguageCode: language.locale.language.languageCode?.identifier
+                                    ?? "") ?? "Unknown"
+                        }
+                    }
+                }
+            }
+        }
 
-        Footer().withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
+        pageContent.withAppEnvironment(language: language)
     }
 }
 
@@ -56,14 +78,10 @@ struct EntryForm: HTML {
 
     var content: some HTML {
         section {
-            h3 { language.localize("entry.title") }
-            p {
-                language.localize("entry.instructions")
-            }
-            p { language.localize("entry.example") }
             form(.method(.post)) {
-                p {
-                    label(.for("pattern")) { language.localize("entry.label") }
+                span(.class("pattern-gradient-border")) {
+                    // TODO: I can kill entry.label I think
+                    // label(.for("pattern")) { language.localize("entry.label") }
                     input(
                         .id("pattern"),
                         .name("pattern"),
@@ -73,10 +91,18 @@ struct EntryForm: HTML {
                         .autocomplete(.off),
                     )
                 }
-                p {
-                    input(.type(.submit), .value(language.localize("entry.button")))
+                button(.type(.submit)) {
+                    language.localize("entry.button")
                 }
             }
+        }
+        // TODO: This shouldn't be displayed all the time
+        section {
+            h3 { language.localize("entry.title") }
+            p {
+                language.localize("entry.instructions")
+            }
+            p { language.localize("entry.example") }
         }
     }
 }
@@ -101,13 +127,11 @@ struct Word: HTML {
     @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
-        word
-        " "
         a(
             .href("https://\(language.languageCode).wiktionary.org/wiki/\(word)"), .target(.blank),
             .rel("noopener noreferrer")
         ) {
-            "📖"
+            word
         }
     }
 }
@@ -121,14 +145,16 @@ struct WordList: HTML {
     var content: some HTML {
         section {
             if words.count == 0 {
-                p { language.localize("results.none") }
+                h2 { language.localize("results.none") }
             } else {
-                h3 { language.localize("results.title") }
+                h2 { language.localize("results.title") }
+                hr()
                 ul {
                     ForEach(words) { word in
                         li { Word(word: word) }
                     }
                 }
+                hr()
                 aside {
                     p {
                         let durationString = duration.formatted(
@@ -143,31 +169,6 @@ struct WordList: HTML {
                                 "count": corpusSize.formatted(.number.locale(language.locale)),
                                 "duration": durationString,
                             ])
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct Footer: HTML {
-    @Environment(AppEnvironment.$language) var currentLanguage: SupportedLanguage!
-    @Environment(AppEnvironment.$supportedLanguages) var supportedLanguages
-
-    var content: some HTML {
-        let otherLanguages = supportedLanguages.filter {
-            $0.languageCode != currentLanguage.languageCode
-        }
-
-        if !otherLanguages.isEmpty {
-            footer {
-                nav {
-                    ul {
-                        ForEach(otherLanguages) { language in
-                            li {
-                                a(.href("\(language.languageCode)")) { language.languageCode }
-                            }
-                        }
                     }
                 }
             }
