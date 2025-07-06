@@ -74,6 +74,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     supportedLanguages: supportedLanguages
                 ) {
                     EntryForm()
+                    Help()
                 }
             }
         }
@@ -88,6 +89,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     ) {
                         EntryForm()
                         BadPattern(pattern: data.pattern)
+                        Help()
                     }
                 }
             }

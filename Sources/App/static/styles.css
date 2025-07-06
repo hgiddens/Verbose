@@ -1,2 +1,147 @@
-/* Verbose - CSS Styles */
-/* Empty stylesheet for now - styles will be added later */
+:root {
+    --background: #fce186;
+    --black: #060a05;
+    --primary-highlight: #ca61c3;
+    --white: #fefefe;
+    --primary-shadow: #586994;
+    --secondary-highlight: #a87965;
+    --secondary-shadow: #4c2c27;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    min-height: 100vh;
+
+    font-family: "Crimson Text", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+
+    text-align: center;
+
+    color: var(--black);
+}
+
+body {
+    background-color: var(--background);
+}
+
+hgroup {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 4em;
+}
+
+hgroup h1, hgroup h2 {
+    margin: 0;
+}
+
+h1 {
+    font-size: 500%;
+    color: var(--white);
+    text-shadow: 0 0 0.1em var(--secondary-shadow);
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+nav {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+nav ul {
+    display: flex;
+    gap: 1em;
+    list-style: none;
+    padding: 0;
+}
+
+nav a:any-link {
+    text-decoration: none;
+    color: var(--black);
+}
+
+nav a:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+button {
+    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
+    border-radius: 0.5em;
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.pattern-gradient-border {
+    /* safari :( */
+    padding: 5px;
+    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
+    border-radius: 0.5em;
+    display: inline-block;
+}
+
+.pattern-gradient-border input[type="text"] {
+    border: none;
+    background: var(--white);
+    border-radius: calc(0.5em - 5px);
+    padding: 1em;
+    display: block;
+}
+
+input[type="text"]::placeholder {
+    color: var(--secondary-highlight);
+    opacity: 0.75;
+}
+
+button, input[type="text"] {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0;
+
+    padding: 1em;
+    /* Means that e.g. width includes border and padding. */
+    box-sizing: border-box;
+
+    font-size: 120%;
+}
+
+.word-list ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    list-style: none;
+    padding: 0;
+}
+
+.book { display: none; }
+
+hr {
+    border: none;
+    height: 5px;
+    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
+    margin: 20px 0;
+}
+
+aside {
+    font-size: 80%;
+}
+
+a {
+    color: var(--secondary-shadow);
+    text-decoration-color: var(--secondary-shadow);
+}
+
+a.visited {
+    color: var(--secondary-highlight);
+    text-decoration-color: var(--secondary-highlight);
+}

@@ -94,12 +94,19 @@ struct EntryForm: HTML {
                         .autocomplete(.off),
                     )
                 }
+                " "  // TODO: necessary for space between input and button
                 button(.type(.submit)) {
                     language.localize("entry.button")
                 }
             }
         }
-        // TODO: This shouldn't be displayed all the time
+    }
+}
+
+struct Help: HTML {
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
+
+    var content: some HTML {
         section {
             h3 { language.localize("entry.title") }
             p {
@@ -146,7 +153,7 @@ struct WordList: HTML {
     @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
-        section {
+        section(.class("word-list")) {
             if words.count == 0 {
                 h2 { language.localize("results.none") }
             } else {

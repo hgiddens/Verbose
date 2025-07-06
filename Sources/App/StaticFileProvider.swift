@@ -14,7 +14,7 @@ struct StaticFileProvider: FileProvider {
         let isFolder: Bool
         let size: Int
         let modificationDate: Date
-        
+
         init?(values: URLResourceValues) {
             guard
                 let isFolder = values.isDirectory,
@@ -23,7 +23,7 @@ struct StaticFileProvider: FileProvider {
             else {
                 return nil
             }
-            
+
             self.isFolder = isFolder
             self.size = size
             self.modificationDate = modificationDate
@@ -64,7 +64,7 @@ struct StaticFileProvider: FileProvider {
             .fileSizeKey,
             .contentModificationDateKey,
         ])
-        
+
         return FileAttributes(values: resourceValues)
     }
 
@@ -72,7 +72,7 @@ struct StaticFileProvider: FileProvider {
         let url = URL(fileURLWithPath: id)
         let data = try Data(contentsOf: url)
         return ResponseBody(contentLength: data.count) { writer in
-            try await writer.write(ByteBuffer(data: data))
+            try await writer.write(ByteBuffer(bytes: data))
         }
     }
 
@@ -86,7 +86,7 @@ struct StaticFileProvider: FileProvider {
         let endIndex = data.index(data.startIndex, offsetBy: min(range.upperBound, data.count - 1))
 
         let rangeData = data[startIndex...endIndex]
-        let buffer = ByteBuffer(data: Data(rangeData))
+        let buffer = ByteBuffer(bytes: Data(rangeData))
         return ResponseBody(contentLength: rangeData.count) { writer in
             try await writer.write(buffer)
         }
