@@ -195,4 +195,37 @@ import Testing
             }
         }
     }
+
+    @Test func testNonStaticFilesAreNotAccessible() async throws {
+        let supportedLanguages = try createTestSupportedLanguages()
+        let args = TestArguments(languages: supportedLanguages)
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/words-en.txt", method: .get) { response in
+                #expect(response.status == .notFound)
+            }
+        }
+    }
+
+    @Test func testDirectoryTraversalPrevented() async throws {
+        let supportedLanguages = try createTestSupportedLanguages()
+        let args = TestArguments(languages: supportedLanguages)
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/static/../words-en.txt", method: .get) { response in
+                #expect(response.status != .ok)
+            }
+        }
+    }
+
+    @Test func testNonStaticPathsBlocked() async throws {
+        let supportedLanguages = try createTestSupportedLanguages()
+        let args = TestArguments(languages: supportedLanguages)
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/Localisations/en.json", method: .get) { response in
+                #expect(response.status == .notFound)
+            }
+        }
+    }
 }
