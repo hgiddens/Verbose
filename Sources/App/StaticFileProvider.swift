@@ -4,17 +4,30 @@ import NIOCore
 
 struct StaticFileProvider: FileProvider {
     private let bundlePath: String
-    private let staticSubdirectory: String
+    private let staticSubdirectory: String = "static"
 
-    init(bundlePath: String, staticSubdirectory: String = "static") {
+    init(bundlePath: String) {
         self.bundlePath = bundlePath
-        self.staticSubdirectory = staticSubdirectory
     }
 
     struct FileAttributes: FileMiddlewareFileAttributes {
         let isFolder: Bool
         let size: Int
         let modificationDate: Date
+        
+        init?(values: URLResourceValues) {
+            guard
+                let isFolder = values.isDirectory,
+                let size = values.fileSize,
+                let modificationDate = values.contentModificationDate
+            else {
+                return nil
+            }
+            
+            self.isFolder = isFolder
+            self.size = size
+            self.modificationDate = modificationDate
+        }
     }
 
     typealias FileIdentifier = String
@@ -51,20 +64,15 @@ struct StaticFileProvider: FileProvider {
             .fileSizeKey,
             .contentModificationDateKey,
         ])
-
-        return FileAttributes(
-            isFolder: resourceValues.isDirectory ?? false,
-            size: resourceValues.fileSize ?? 0,
-            modificationDate: resourceValues.contentModificationDate ?? Date()
-        )
+        
+        return FileAttributes(values: resourceValues)
     }
 
     func loadFile(id: String, context: some RequestContext) async throws -> ResponseBody {
         let url = URL(fileURLWithPath: id)
         let data = try Data(contentsOf: url)
-        let buffer = ByteBuffer(data: data)
         return ResponseBody(contentLength: data.count) { writer in
-            try await writer.write(buffer)
+            try await writer.write(ByteBuffer(data: data))
         }
     }
 

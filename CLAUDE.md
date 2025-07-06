@@ -62,6 +62,9 @@ swift test --filter SolverTests
 swift test --filter VerboseTests
 ```
 
+- Tests should have a single, clear purpose; a test failure should
+  theoretically be able to easily identify the problem.
+
 ### Package Management
 ```bash
 # Update dependencies
