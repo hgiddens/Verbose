@@ -44,6 +44,7 @@ let package = Package(
                 .copy("Localisations"),
                 .copy("words-en.txt"),
                 .copy("words-de.txt"),
+                .copy("static"),
             ],
         ),
         .testTarget(

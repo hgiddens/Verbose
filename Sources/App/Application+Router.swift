@@ -1,3 +1,4 @@
+import Foundation
 import Hummingbird
 import HummingbirdElementary
 import Solver
@@ -49,6 +50,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
+    router.addMiddleware { FileMiddleware(Bundle.module.bundleURL.path) }
     router.addMiddleware { LogRequestsMiddleware(.info) }
     router.addMiddleware { SecurityHeadersMiddleware() }
 

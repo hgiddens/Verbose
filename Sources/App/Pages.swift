@@ -27,6 +27,9 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         meta(.charset(.utf8))
         meta(.name(.viewport), .content("width=device-width, initial-scale=1.0"))
 
+        // Local stylesheet
+        link(.rel(.stylesheet), .href("/static/styles.css"))
+
         // Help web fonts load faster. I think this could be a middleware (there's a header which
         // triggers preconnect even earlier) but that feels like it might be a little
         // over-engineered for this.

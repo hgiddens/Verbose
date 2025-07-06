@@ -160,4 +160,39 @@ import Testing
             }
         }
     }
+
+    @Test func testStaticCSSFile() async throws {
+        let supportedLanguages = try createTestSupportedLanguages()
+        let args = TestArguments(languages: supportedLanguages)
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/static/styles.css", method: .get) { response in
+                #expect(response.status == .ok)
+                #expect(response.headers[.contentType] == "text/css")
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
+                try #expect(#require(bodyString).contains("/* Verbose - CSS Styles */"))
+            }
+        }
+    }
+
+    @Test func testHTMLContainsStylesheetLink() async throws {
+        let supportedLanguages = try createTestSupportedLanguages()
+        let args = TestArguments(languages: supportedLanguages)
+        let app = try await buildApplication(args)
+        try await app.test(.router) { client in
+            try await client.execute(uri: "/en", method: .get) { response in
+                #expect(response.status == .ok)
+                let bodyString = response.body.getString(
+                    at: 0,
+                    length: response.body.readableBytes,
+                    encoding: .utf8)
+                try #expect(
+                    #require(bodyString).contains(
+                        "<link rel=\"stylesheet\" href=\"/static/styles.css\">"))
+            }
+        }
+    }
 }
