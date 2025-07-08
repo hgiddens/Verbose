@@ -27,7 +27,11 @@ struct MainLayout<Body: HTML>: HTMLDocument {
         meta(.charset(.utf8))
         meta(.name(.viewport), .content("width=device-width, initial-scale=1.0"))
 
-        // Local stylesheet
+        link(
+            .rel(.icon), .custom(name: "type", value: "image/png"),
+            .custom(name: "sizes", value: "32x32"), .href("static/owl-32.png"))
+        link(.rel(.icon), .custom(name: "type", value: "image/svg+xml"), .href("static/owl.svg"))
+        link(.rel("apple-touch-icon"), .href("static/apple-touch-icon.png"))
         link(.rel(.stylesheet), .href("static/styles.css"))
 
         // Help web fonts load faster. I think this could be a middleware (there's a header which

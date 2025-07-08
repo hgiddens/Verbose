@@ -1,12 +1,12 @@
 :root {
     --background: #fce186;
     --black: #060a05;
-    --white: #fefefe;
+    --white: #fdfdfd;
 
     --primary-highlight: #ca61c3;
     --primary-shadow: #586994;
 
-    --secondary-highlight: #a87965;
+    --secondary-highlight: #a57662;
     --secondary-shadow: #4c2c27;
 
     --border-radius: 0.5em;
