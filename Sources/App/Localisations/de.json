@@ -5,7 +5,7 @@
   "entry.instructions": "Gib ein Wort ein und ersetze unbekannte Buchstaben mit einem Fragezeichen. Gross-/Kleinschreibung wird ignoriert. Dann drücke die Eingabetaste oder den Knopf!",
   "entry.example": "Zum Beispiel: stra?e → strafe, Straße",
   "entry.label": "Wörterschema",
-  "entry.placeholder": "stra?e",
+  "entry.placeholder": "Stra?e",
   "entry.button": "Los geht's!",
   "error.title": "Tut mir leid!",
   "error.pattern": "Ich habe das Schema “%{pattern}” nicht verstanden.",
