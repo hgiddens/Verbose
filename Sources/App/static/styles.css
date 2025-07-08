@@ -1,11 +1,17 @@
 :root {
     --background: #fce186;
     --black: #060a05;
-    --primary-highlight: #ca61c3;
     --white: #fefefe;
+
+    --primary-highlight: #ca61c3;
     --primary-shadow: #586994;
+
     --secondary-highlight: #a87965;
     --secondary-shadow: #4c2c27;
+
+    --border-radius: 0.5em;
+    --gradient-angle: 120deg;
+    --border-width: 5px;
 }
 
 body {
@@ -13,7 +19,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: 1em;
     min-height: 100vh;
 
     font-family: "Crimson Text", serif;
@@ -33,7 +39,7 @@ body {
 hgroup {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 1em;
     margin-bottom: 4em;
 }
 
@@ -75,8 +81,8 @@ header nav a:hover {
 }
 
 button {
-    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
-    border-radius: 0.5em;
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
+    border-radius: var(--border-radius);
     border: none;
     color: var(--white);
     font-weight: 600;
@@ -84,17 +90,16 @@ button {
 
 .pattern-gradient-border {
     /* safari :( */
-    padding: 5px;
-    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
-    border-radius: 0.5em;
+    padding: var(--border-width);
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
+    border-radius: var(--border-radius);
     display: inline-block;
 }
 
 .pattern-gradient-border input[type="text"] {
     border: none;
     background: var(--white);
-    border-radius: calc(0.5em - 5px);
-    padding: 1em;
+    border-radius: calc(var(--border-radius) - var(--border-width));
     display: block;
 }
 
@@ -124,6 +129,10 @@ button, input[type="text"] {
     font-size: 120%;
 }
 
+input[type="text"] {
+    width: 10em;
+}
+
 .word-list ul {
     display: flex;
     flex-direction: column;
@@ -136,8 +145,8 @@ button, input[type="text"] {
 
 hr {
     border: none;
-    height: 5px;
-    background: linear-gradient(120deg, var(--primary-highlight), var(--primary-shadow));
+    height: var(--border-width);
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
     margin: 20px 0;
 }
 
