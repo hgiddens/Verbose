@@ -1,0 +1,165 @@
+:root {
+    --background: #fce186;
+    --black: #060a05;
+    --white: #fdfdfd;
+
+    --primary-highlight: #ca61c3;
+    --primary-shadow: #586994;
+
+    --secondary-highlight: #a57662;
+    --secondary-shadow: #4c2c27;
+
+    --border-radius: 0.5em;
+    --gradient-angle: 120deg;
+    --border-width: 5px;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1em;
+    min-height: 100vh;
+
+    font-family: "Crimson Text", serif;
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+
+    text-align: center;
+
+    color: var(--black);
+}
+
+body {
+    background-color: var(--background);
+}
+
+hgroup {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    margin-bottom: 4em;
+}
+
+hgroup h1, hgroup h2 {
+    margin: 0;
+}
+
+h1 {
+    font-size: 500%;
+    color: var(--white);
+    text-shadow: 0 0 0.1em var(--secondary-shadow);
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+header nav {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+header nav ul {
+    display: flex;
+    gap: 1em;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+header nav a:any-link {
+    text-decoration: none;
+    color: var(--black);
+}
+
+header nav a:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+button {
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
+    border-radius: var(--border-radius);
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.pattern-gradient-border {
+    /* safari :( */
+    padding: var(--border-width);
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
+    border-radius: var(--border-radius);
+    display: inline-block;
+}
+
+.pattern-gradient-border input[type="text"] {
+    border: none;
+    background: var(--white);
+    border-radius: calc(var(--border-radius) - var(--border-width));
+    display: block;
+}
+
+input[type="text"]::placeholder {
+    color: var(--secondary-highlight);
+    opacity: 0.75;
+}
+
+form.search {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.7em;
+    justify-content: center;
+}
+
+button, input[type="text"] {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    margin: 0;
+
+    padding: 1em;
+    /* Means that e.g. width includes border and padding. */
+    box-sizing: border-box;
+
+    font-size: 120%;
+}
+
+input[type="text"] {
+    width: 10em;
+}
+
+.word-list ul {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7em;
+    list-style: none;
+    padding: 0;
+}
+
+.book { display: none; }
+
+hr {
+    border: none;
+    height: var(--border-width);
+    background: linear-gradient(var(--gradient-angle), var(--primary-highlight), var(--primary-shadow));
+    margin: 20px 0;
+}
+
+aside {
+    font-size: 80%;
+}
+
+a {
+    color: var(--secondary-shadow);
+    text-decoration-color: var(--secondary-shadow);
+}
+
+a.visited {
+    color: var(--secondary-highlight);
+    text-decoration-color: var(--secondary-highlight);
+}

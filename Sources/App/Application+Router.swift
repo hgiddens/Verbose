@@ -1,3 +1,4 @@
+import Foundation
 import Hummingbird
 import HummingbirdElementary
 import Solver
@@ -49,6 +50,11 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
+    router.addMiddleware {
+        FileMiddleware(
+            fileProvider: StaticFileProvider(bundlePath: Bundle.module.bundleURL.path)
+        )
+    }
     router.addMiddleware { LogRequestsMiddleware(.info) }
     router.addMiddleware { SecurityHeadersMiddleware() }
 
@@ -68,6 +74,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     supportedLanguages: supportedLanguages
                 ) {
                     EntryForm()
+                    Help()
                 }
             }
         }
@@ -82,6 +89,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
                     ) {
                         EntryForm()
                         BadPattern(pattern: data.pattern)
+                        Help()
                     }
                 }
             }

@@ -5,16 +5,11 @@ import Solver
 
 private enum AppEnvironment {
     @TaskLocal static var language: SupportedLanguage? = nil
-    @TaskLocal static var supportedLanguages: [SupportedLanguage] = []
 }
 
 extension HTML {
-    fileprivate func withAppEnvironment(
-        language: SupportedLanguage, supportedLanguages: [SupportedLanguage]
-    ) -> some HTML {
-        self
-            .environment(AppEnvironment.$language, language)
-            .environment(AppEnvironment.$supportedLanguages, supportedLanguages)
+    fileprivate func withAppEnvironment(language: SupportedLanguage) -> some HTML {
+        self.environment(AppEnvironment.$language, language)
     }
 }
 
@@ -31,6 +26,23 @@ struct MainLayout<Body: HTML>: HTMLDocument {
     var head: some HTML {
         meta(.charset(.utf8))
         meta(.name(.viewport), .content("width=device-width, initial-scale=1.0"))
+
+        link(
+            .rel(.icon), .custom(name: "type", value: "image/png"),
+            .custom(name: "sizes", value: "32x32"), .href("static/owl-32.png"))
+        link(.rel(.icon), .custom(name: "type", value: "image/svg+xml"), .href("static/owl.svg"))
+        link(.rel("apple-touch-icon"), .href("static/apple-touch-icon.png"))
+        link(.rel(.stylesheet), .href("static/styles.css"))
+
+        // Help web fonts load faster. I think this could be a middleware (there's a header which
+        // triggers preconnect even earlier) but that feels like it might be a little
+        // over-engineered for this.
+        link(.rel("preconnect"), .href("https://fonts.googleapis.com"))
+        link(.rel("preconnect"), .href("https://fonts.gstatic.com"), .crossorigin(.anonymous))
+        link(
+            .rel(.stylesheet),
+            .href("https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600&display=swap")
+        )
     }
 
     var body: some HTML {
@@ -39,11 +51,25 @@ struct MainLayout<Body: HTML>: HTMLDocument {
                 h1 { title }
                 h2 { language.localize("app.subtitle") }
             }
+
+            nav {
+                ul {
+                    let otherLanguages = supportedLanguages.filter {
+                        $0.languageCode != language.languageCode
+                    }
+
+                    ForEach(otherLanguages) { language in
+                        li {
+                            a(.href("\(language.languageCode)")) {
+                                language.localisedName
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        pageContent.withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
-
-        Footer().withAppEnvironment(language: language, supportedLanguages: supportedLanguages)
+        pageContent.withAppEnvironment(language: language)
     }
 }
 
@@ -56,14 +82,8 @@ struct EntryForm: HTML {
 
     var content: some HTML {
         section {
-            h3 { language.localize("entry.title") }
-            p {
-                language.localize("entry.instructions")
-            }
-            p { language.localize("entry.example") }
-            form(.method(.post)) {
-                p {
-                    label(.for("pattern")) { language.localize("entry.label") }
+            form(.method(.post), .class("search")) {
+                span(.class("pattern-gradient-border")) {
                     input(
                         .id("pattern"),
                         .name("pattern"),
@@ -71,12 +91,27 @@ struct EntryForm: HTML {
                         .type(.text),
                         .required,
                         .autocomplete(.off),
+                        .custom(name: "aria-label", value: language.localize("entry.label")),
                     )
                 }
-                p {
-                    input(.type(.submit), .value(language.localize("entry.button")))
+                button(.type(.submit)) {
+                    language.localize("entry.button")
                 }
             }
+        }
+    }
+}
+
+struct Help: HTML {
+    @Environment(AppEnvironment.$language) var language: SupportedLanguage!
+
+    var content: some HTML {
+        section {
+            h3 { language.localize("entry.title") }
+            p {
+                language.localize("entry.instructions")
+            }
+            p { language.localize("entry.example") }
         }
     }
 }
@@ -101,13 +136,11 @@ struct Word: HTML {
     @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
-        word
-        " "
         a(
             .href("https://\(language.languageCode).wiktionary.org/wiki/\(word)"), .target(.blank),
             .rel("noopener noreferrer")
         ) {
-            "📖"
+            word
         }
     }
 }
@@ -119,16 +152,18 @@ struct WordList: HTML {
     @Environment(AppEnvironment.$language) var language: SupportedLanguage!
 
     var content: some HTML {
-        section {
+        section(.class("word-list")) {
             if words.count == 0 {
-                p { language.localize("results.none") }
+                h2 { language.localize("results.none") }
             } else {
-                h3 { language.localize("results.title") }
+                h2 { language.localize("results.title") }
+                hr()
                 ul {
                     ForEach(words) { word in
                         li { Word(word: word) }
                     }
                 }
+                hr()
                 aside {
                     p {
                         let durationString = duration.formatted(
@@ -143,31 +178,6 @@ struct WordList: HTML {
                                 "count": corpusSize.formatted(.number.locale(language.locale)),
                                 "duration": durationString,
                             ])
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct Footer: HTML {
-    @Environment(AppEnvironment.$language) var currentLanguage: SupportedLanguage!
-    @Environment(AppEnvironment.$supportedLanguages) var supportedLanguages
-
-    var content: some HTML {
-        let otherLanguages = supportedLanguages.filter {
-            $0.languageCode != currentLanguage.languageCode
-        }
-
-        if !otherLanguages.isEmpty {
-            footer {
-                nav {
-                    ul {
-                        ForEach(otherLanguages) { language in
-                            li {
-                                a(.href("\(language.languageCode)")) { language.languageCode }
-                            }
-                        }
                     }
                 }
             }
