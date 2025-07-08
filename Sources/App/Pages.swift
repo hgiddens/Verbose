@@ -47,21 +47,18 @@ struct MainLayout<Body: HTML>: HTMLDocument {
                 h1 { title }
                 h2 { language.localize("app.subtitle") }
             }
-        }
 
-        let otherLanguages = supportedLanguages.filter {
-            $0.languageCode != language.languageCode
-        }
-        // TODO: should this be in the header?
-        nav {
-            ul {
-                ForEach(otherLanguages) { language in
-                    li {
-                        a(.href("\(language.languageCode)")) {
-                            // TODO: aren't I guaranteed that _my_ locales have a language code?
-                            language.locale.localizedString(
-                                forLanguageCode: language.locale.language.languageCode?.identifier
-                                    ?? "") ?? "Unknown"
+            nav {
+                ul {
+                    let otherLanguages = supportedLanguages.filter {
+                        $0.languageCode != language.languageCode
+                    }
+
+                    ForEach(otherLanguages) { language in
+                        li {
+                            a(.href("\(language.languageCode)")) {
+                                language.localisedName
+                            }
                         }
                     }
                 }
@@ -81,10 +78,8 @@ struct EntryForm: HTML {
 
     var content: some HTML {
         section {
-            form(.method(.post)) {
+            form(.method(.post), .class("search")) {
                 span(.class("pattern-gradient-border")) {
-                    // TODO: I can kill entry.label I think
-                    // label(.for("pattern")) { language.localize("entry.label") }
                     input(
                         .id("pattern"),
                         .name("pattern"),
@@ -92,9 +87,9 @@ struct EntryForm: HTML {
                         .type(.text),
                         .required,
                         .autocomplete(.off),
+                        .custom(name: "aria-label", value: language.localize("entry.label")),
                     )
                 }
-                " "  // TODO: necessary for space between input and button
                 button(.type(.submit)) {
                     language.localize("entry.button")
                 }

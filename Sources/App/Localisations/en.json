@@ -4,7 +4,7 @@
   "entry.title": "Let's solve a word!",
   "entry.instructions": "Enter a word, replacing unknown letters with a question mark. Case is ignored. Then hit enter or press the button!",
   "entry.example": "For example: v?r?o?e → variole, verbose",
-  "entry.label": "Word pattern: ",
+  "entry.label": "Word pattern",
   "entry.placeholder": "v?r?o?e",
   "entry.button": "Let's go!",
   "error.title": "Sorry!",

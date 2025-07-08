@@ -15,12 +15,17 @@ public struct SupportedLanguage: Sendable {
     public let locale: Locale
     public let solver: Solver
     private let lingo: Lingo
+    public let localisedName: String
 
     public init(locale: Locale, solver: Solver, lingo: Lingo) {
+        let languageCode = locale.language.languageCode
         precondition(
-            locale.language.languageCode != nil,
+            languageCode != nil,
             "Locale must have a valid language code")
         self.locale = locale
+        let localisedName = locale.localizedString(forLanguageCode: languageCode!.identifier)
+        precondition(localisedName != nil, "Locale must have a localised name")
+        self.localisedName = localisedName!
         self.solver = solver
         self.lingo = lingo
     }

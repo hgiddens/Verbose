@@ -51,25 +51,26 @@ h1, h2, h3 {
     font-weight: 600;
 }
 
-nav {
+header nav {
     position: absolute;
     top: 20px;
     right: 20px;
 }
 
-nav ul {
+header nav ul {
     display: flex;
     gap: 1em;
     list-style: none;
+    margin: 0;
     padding: 0;
 }
 
-nav a:any-link {
+header nav a:any-link {
     text-decoration: none;
     color: var(--black);
 }
 
-nav a:hover {
+header nav a:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -100,6 +101,14 @@ button {
 input[type="text"]::placeholder {
     color: var(--secondary-highlight);
     opacity: 0.75;
+}
+
+form.search {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.7em;
+    justify-content: center;
 }
 
 button, input[type="text"] {

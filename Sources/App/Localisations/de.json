@@ -4,7 +4,7 @@
   "entry.title": "Lösen wir mal ein Wort!",
   "entry.instructions": "Gib ein Wort ein und ersetze unbekannte Buchstaben mit einem Fragezeichen. Gross-/Kleinschreibung wird ignoriert. Dann drücke die Eingabetaste oder den Knopf!",
   "entry.example": "Zum Beispiel: stra?e → strafe, Straße",
-  "entry.label": "Wörterschema: ",
+  "entry.label": "Wörterschema",
   "entry.placeholder": "stra?e",
   "entry.button": "Los geht's!",
   "error.title": "Tut mir leid!",
