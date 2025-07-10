@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+import HummingbirdCompression
 import HummingbirdElementary
 import Solver
 
@@ -60,6 +61,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
+    router.addMiddleware { ResponseCompressionMiddleware(minimumResponseSizeToCompress: 512) }
     router.addMiddleware {
         FileMiddleware(
             fileProvider: StaticFileProvider(bundlePath: Bundle.module.bundleURL.path)
