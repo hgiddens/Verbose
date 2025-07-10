@@ -26,7 +26,7 @@ import Testing
         #expect(supportedLanguage.localisedName == "Deutsch")
         #expect(supportedLanguage.solver.totalWords == 3)
     }
-    
+
     @Test func initializationWithRegionCode() throws {
         let locale = Locale(identifier: "en_NZ")
         let lingo = try createTestLingo()

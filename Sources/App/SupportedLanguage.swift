@@ -24,7 +24,7 @@ public struct SupportedLanguage: Sendable {
 
     /// The language identifer, without region code, e.g. "en".
     public let languageCode: String
-    
+
     /// The region code identifier (if present), e.g. "NZ".
     public let regionCode: String?
 

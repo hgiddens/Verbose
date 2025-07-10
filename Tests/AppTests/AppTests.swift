@@ -53,10 +53,31 @@ import Testing
         let args = TestArguments(languages: supportedLanguages)
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
+            // en-US should fall back to en
             try await client.execute(
                 uri: "/",
                 method: .get,
                 headers: [.acceptLanguage: "en-US,en;q=0.9"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "en")
+            }
+
+            // de-DE should match exactly
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "de-DE,de;q=0.9"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "de-DE")
+            }
+
+            // quality should matter
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "de-CH,en;q=0.9,de;q=0.7"]
             ) { response in
                 #expect(response.status == .found)
                 #expect(response.headers[.location] == "en")
