@@ -23,7 +23,7 @@ public func buildApplication(_ arguments: some AppArguments) async throws
     }()
     for language in arguments.languages {
         logger.debug(
-            "Loaded word list for \(language.languageCode) with \(language.solver.totalWords) words"
+            "Loaded word list for \(language.identifier) with \(language.solver.totalWords) words"
         )
     }
     let router = buildRouter(supportedLanguages: arguments.languages)

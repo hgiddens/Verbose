@@ -15,7 +15,7 @@ struct AppRequestContext: RequestContext {
 private func negotiateLanguage(from acceptLanguage: String, supportedLanguages: [SupportedLanguage])
     -> SupportedLanguage
 {
-    let supportedCodes = Set(supportedLanguages.map { $0.languageCode })
+    let supportedCodes = Set(supportedLanguages.map { $0.identifier })
 
     let languages =
         acceptLanguage
@@ -31,7 +31,7 @@ private func negotiateLanguage(from acceptLanguage: String, supportedLanguages: 
 
     for (lang, _) in languages {
         if supportedCodes.contains(lang) {
-            return supportedLanguages.first { $0.languageCode == lang }!
+            return supportedLanguages.first { $0.identifier == lang }!
         }
     }
 
@@ -42,9 +42,9 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     -> Router<AppRequestContext>
 {
     precondition(!supportedLanguages.isEmpty, "Must have at least one supported language")
-    let uniqueLanguageCodes = Set(supportedLanguages.map { $0.languageCode })
+    let uniqueLanguageIdentifiers = Set(supportedLanguages.map { $0.identifier })
     precondition(
-        supportedLanguages.count == uniqueLanguageCodes.count,
+        supportedLanguages.count == uniqueLanguageIdentifiers.count,
         "All supported languages must have unique language codes")
 
     let router = Router(context: AppRequestContext.self)
@@ -63,11 +63,11 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
         let acceptLanguage = request.headers[.acceptLanguage] ?? ""
         let negotiatedLanguage = negotiateLanguage(
             from: acceptLanguage, supportedLanguages: supportedLanguages)
-        return Response(status: .found, headers: [.location: "\(negotiatedLanguage.languageCode)"])
+        return Response(status: .found, headers: [.location: "\(negotiatedLanguage.identifier)"])
     }
 
     for language in supportedLanguages {
-        router.get("/\(language.languageCode)") { request, context in
+        router.get("/\(language.identifier)") { request, context in
             return HTMLResponse {
                 MainLayout(
                     language: language,
@@ -79,7 +79,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
             }
         }
 
-        router.post("/\(language.languageCode)") { request, context in
+        router.post("/\(language.identifier)") { request, context in
             let data = try await request.decode(as: EntryForm.FormData.self, context: context)
             guard let pattern = Pattern(string: data.pattern) else {
                 return HTMLResponse {

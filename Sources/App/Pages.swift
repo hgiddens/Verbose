@@ -19,7 +19,7 @@ struct MainLayout<Body: HTML>: HTMLDocument {
     let supportedLanguages: [SupportedLanguage]
 
     var title: String { language.localize("app.title") }
-    var lang: String { language.languageCode }
+    var lang: String { language.identifier }
 
     @HTMLBuilder var pageContent: Body
 
@@ -54,13 +54,13 @@ struct MainLayout<Body: HTML>: HTMLDocument {
 
             nav {
                 ul {
-                    let otherLanguages = supportedLanguages.filter {
-                        $0.languageCode != language.languageCode
+                    let otherLanguages = supportedLanguages.filter { supportedLanguage in
+                        supportedLanguage.identifier != language.identifier
                     }
 
                     ForEach(otherLanguages) { language in
                         li {
-                            a(.href("\(language.languageCode)")) {
+                            a(.href("\(language.identifier)")) {
                                 language.localisedName
                             }
                         }

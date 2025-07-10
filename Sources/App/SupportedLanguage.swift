@@ -15,17 +15,28 @@ public struct SupportedLanguage: Sendable {
     public let locale: Locale
     public let solver: Solver
     private let lingo: Lingo
+
+    /// User-facing description of the language, e.g. "English" or "Deutsch (Schweiz)"
     public let localisedName: String
 
+    /// The full language identifier, possibly including region code, e.g. "en-NZ".
+    public let identifier: String
+
+    /// The language identifer, without region code, e.g. "en".
+    public let languageCode: String
+    
+    /// The region code identifier (if present), e.g. "NZ".
+    public let regionCode: String?
+
     public init(locale: Locale, solver: Solver, lingo: Lingo) {
-        let languageCode = locale.language.languageCode
+        let languageCode: Locale.LanguageCode! = locale.language.languageCode
         precondition(
             languageCode != nil,
             "Locale must have a valid language code")
         self.locale = locale
 
         // Generate localized name
-        let languageName = locale.localizedString(forLanguageCode: languageCode!.identifier)
+        let languageName = locale.localizedString(forLanguageCode: languageCode.identifier)
         precondition(languageName != nil, "Locale must have a localised language name")
 
         if let region = locale.language.region {
@@ -33,19 +44,20 @@ public struct SupportedLanguage: Sendable {
             precondition(regionName != nil, "Locale must have a localised region name")
             self.localisedName = lingo.localize(
                 "language.combined",
-                locale: languageCode!.identifier,
+                locale: languageCode.identifier,
                 interpolations: ["language": languageName!, "region": regionName!]
             )
+            self.identifier = "\(languageCode.identifier)-\(region.identifier)"
+            self.regionCode = region.identifier
         } else {
             self.localisedName = languageName!
+            self.identifier = languageCode.identifier
+            self.regionCode = nil
         }
 
+        self.languageCode = languageCode.identifier
         self.solver = solver
         self.lingo = lingo
-    }
-
-    public var languageCode: String {
-        locale.language.languageCode!.identifier
     }
 
     public func localize(_ key: String, interpolations: [String: String]? = nil) -> String {
