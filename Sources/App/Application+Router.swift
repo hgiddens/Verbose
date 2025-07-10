@@ -15,7 +15,8 @@ struct AppRequestContext: RequestContext {
 private func negotiateLanguage(from acceptLanguage: String, supportedLanguages: [SupportedLanguage])
     -> SupportedLanguage
 {
-    let supportedCodes = Set(supportedLanguages.map { $0.languageCode })
+    let supportedIdentifiers = Set(supportedLanguages.map { $0.identifier })
+    let supportedLanguageCodes = Set(supportedLanguages.map { $0.languageCode })
 
     let languages =
         acceptLanguage
@@ -23,15 +24,24 @@ private func negotiateLanguage(from acceptLanguage: String, supportedLanguages: 
         .compactMap { component -> (String, Double)? in
             let parts = component.trimmingCharacters(in: .whitespaces).components(
                 separatedBy: ";q=")
-            let lang = parts[0].components(separatedBy: "-")[0]
+            let langTag = parts[0].trimmingCharacters(in: .whitespaces)
             let quality = parts.count > 1 ? Double(parts[1]) ?? 1.0 : 1.0
-            return (lang, quality)
+            return (langTag, quality)
         }
         .sorted { $0.1 > $1.1 }
 
-    for (lang, _) in languages {
-        if supportedCodes.contains(lang) {
-            return supportedLanguages.first { $0.languageCode == lang }!
+    // First pass: try exact matches (including region codes)
+    for (langTag, _) in languages {
+        if supportedIdentifiers.contains(langTag) {
+            return supportedLanguages.first { $0.identifier == langTag }!
+        }
+    }
+
+    // Second pass: try language-only matches (fallback for regions)
+    for (langTag, _) in languages {
+        let languageCode = langTag.components(separatedBy: "-")[0]
+        if supportedLanguageCodes.contains(languageCode) {
+            return supportedLanguages.first { $0.languageCode == languageCode }!
         }
     }
 
@@ -42,9 +52,9 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     -> Router<AppRequestContext>
 {
     precondition(!supportedLanguages.isEmpty, "Must have at least one supported language")
-    let uniqueLanguageCodes = Set(supportedLanguages.map { $0.languageCode })
+    let uniqueLanguageIdentifiers = Set(supportedLanguages.map { $0.identifier })
     precondition(
-        supportedLanguages.count == uniqueLanguageCodes.count,
+        supportedLanguages.count == uniqueLanguageIdentifiers.count,
         "All supported languages must have unique language codes")
 
     let router = Router(context: AppRequestContext.self)
@@ -63,11 +73,11 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
         let acceptLanguage = request.headers[.acceptLanguage] ?? ""
         let negotiatedLanguage = negotiateLanguage(
             from: acceptLanguage, supportedLanguages: supportedLanguages)
-        return Response(status: .found, headers: [.location: "\(negotiatedLanguage.languageCode)"])
+        return Response(status: .found, headers: [.location: "\(negotiatedLanguage.identifier)"])
     }
 
     for language in supportedLanguages {
-        router.get("/\(language.languageCode)") { request, context in
+        router.get("/\(language.identifier)") { request, context in
             return HTMLResponse {
                 MainLayout(
                     language: language,
@@ -79,7 +89,7 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
             }
         }
 
-        router.post("/\(language.languageCode)") { request, context in
+        router.post("/\(language.identifier)") { request, context in
             let data = try await request.decode(as: EntryForm.FormData.self, context: context)
             guard let pattern = Pattern(string: data.pattern) else {
                 return HTMLResponse {

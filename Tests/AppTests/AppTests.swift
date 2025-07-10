@@ -21,7 +21,7 @@ import Testing
 
         let englishSolver = Solver(words: ["xylophone", "test", "word", "example"])
         let englishLanguage = SupportedLanguage(
-            locale: Locale(identifier: "en_NZ"),
+            locale: Locale(identifier: "en"),
             solver: englishSolver,
             lingo: lingo
         )
@@ -53,10 +53,31 @@ import Testing
         let args = TestArguments(languages: supportedLanguages)
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
+            // en-US should fall back to en
             try await client.execute(
                 uri: "/",
                 method: .get,
                 headers: [.acceptLanguage: "en-US,en;q=0.9"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "en")
+            }
+
+            // de-DE should match exactly
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "de-DE,de;q=0.9"]
+            ) { response in
+                #expect(response.status == .found)
+                #expect(response.headers[.location] == "de-DE")
+            }
+
+            // quality should matter
+            try await client.execute(
+                uri: "/",
+                method: .get,
+                headers: [.acceptLanguage: "de-CH,en;q=0.9,de;q=0.7"]
             ) { response in
                 #expect(response.status == .found)
                 #expect(response.headers[.location] == "en")
@@ -93,7 +114,8 @@ import Testing
                     at: 0,
                     length: response.body.readableBytes,
                     encoding: .utf8)
-                try #expect(#require(bodyString).contains("<a href=\"de\">Deutsch</a>"))
+                try #expect(
+                    #require(bodyString).contains("<a href=\"de-DE\">Deutsch (Deutschland)</a>"))
                 try #expect(
                     #require(bodyString).contains(
                         "<link rel=\"stylesheet\" href=\"static/styles.css\">"))
@@ -106,7 +128,7 @@ import Testing
         let args = TestArguments(languages: supportedLanguages)
         let app = try await buildApplication(args)
         try await app.test(.router) { client in
-            try await client.execute(uri: "/de", method: .get) { response in
+            try await client.execute(uri: "/de-DE", method: .get) { response in
                 #expect(response.status == .ok)
                 #expect(response.headers[.contentType] == "text/html; charset=utf-8")
                 let bodyString = response.body.getString(
@@ -114,7 +136,8 @@ import Testing
                     length: response.body.readableBytes,
                     encoding: .utf8)
                 try #expect(#require(bodyString).contains("Lösen wir mal ein Wort!"))
-                try #expect(#require(bodyString).contains("<a href=\"en\">English</a>"))
+                try #expect(
+                    #require(bodyString).contains("<a href=\"en\">English</a>"))
             }
         }
     }

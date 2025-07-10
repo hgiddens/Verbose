@@ -12,5 +12,6 @@
   "error.pattern.help": "It should only be letters (where known) and question marks (where not).",
   "results.title": "Words:",
   "results.none": "No words found :(",
-  "results.stats": "Checked %{count} words in %{duration}"
+  "results.stats": "Checked %{count} words in %{duration}",
+  "language.combined": "%{language} (%{region})"
 }

@@ -12,5 +12,6 @@
   "error.pattern.help": "Es sollte nur Buchstaben (wo bekannt) und Fragezeichen (wo nicht) sein.",
   "results.title": "Wörter:",
   "results.none": "Fand leider nichts :(",
-  "results.stats": "%{count} Wörter in %{duration} überprüft"
+  "results.stats": "%{count} Wörter in %{duration} überprüft",
+  "language.combined": "%{language} (%{region})"
 }
