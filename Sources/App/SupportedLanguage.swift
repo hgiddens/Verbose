@@ -72,11 +72,7 @@ extension SupportedLanguage: ExpressibleByArgument {
         let locale = Locale(identifier: argument)
         guard
             let languageCode = locale.language.languageCode?.identifier,
-            let lingo = try? Lingo.fromBundleLocalisations
-        else { return nil }
-
-        // Find matching word files
-        guard
+            let lingo = try? Lingo.fromBundleLocalisations,
             let wordsURLs = Bundle.module.urls(
                 forResourcesWithExtension: "txt", subdirectory: "words")
         else {
@@ -85,33 +81,25 @@ extension SupportedLanguage: ExpressibleByArgument {
 
         let matchingURLs: [URL]
         if let region = locale.language.region {
-            // Specific region requested - look for exact match
             let targetFilename = "\(languageCode)_\(region.identifier).txt"
             matchingURLs = wordsURLs.filter { $0.lastPathComponent == targetFilename }
         } else {
-            // Language only - collect all files for this language
             let prefix = "\(languageCode)_"
             matchingURLs = wordsURLs.filter { $0.lastPathComponent.hasPrefix(prefix) }
         }
+        if matchingURLs.isEmpty { return nil }
 
-        // Return nil if no matching files found
-        guard !matchingURLs.isEmpty else { return nil }
-
-        // Load and combine contents from all matching files
-        var allWords: [String] = []
+        var wordSet: Set<String> = []
         for url in matchingURLs {
             guard let contents = try? String(contentsOf: url, encoding: .utf8) else {
                 return nil
             }
-            allWords.append(contentsOf: contents.components(separatedBy: .newlines))
+            wordSet.formUnion(contents.components(separatedBy: .newlines))
         }
 
-        // Remove empty strings and duplicates
-        let uniqueWords = Array(Set(allWords.filter { !$0.isEmpty }))
+        var words = Array(wordSet)
+        words.sort()
 
-        self.init(
-            locale: locale,
-            solver: Solver(words: uniqueWords),
-            lingo: lingo)
+        self.init(locale: locale, solver: Solver(words: words), lingo: lingo)
     }
 }
