@@ -23,9 +23,23 @@ public struct SupportedLanguage: Sendable {
             languageCode != nil,
             "Locale must have a valid language code")
         self.locale = locale
-        let localisedName = locale.localizedString(forLanguageCode: languageCode!.identifier)
-        precondition(localisedName != nil, "Locale must have a localised name")
-        self.localisedName = localisedName!
+
+        // Generate localized name
+        let languageName = locale.localizedString(forLanguageCode: languageCode!.identifier)
+        precondition(languageName != nil, "Locale must have a localised language name")
+
+        if let region = locale.language.region {
+            let regionName = locale.localizedString(forRegionCode: region.identifier)
+            precondition(regionName != nil, "Locale must have a localised region name")
+            self.localisedName = lingo.localize(
+                "language.combined",
+                locale: languageCode!.identifier,
+                interpolations: ["language": languageName!, "region": regionName!]
+            )
+        } else {
+            self.localisedName = languageName!
+        }
+
         self.solver = solver
         self.lingo = lingo
     }
@@ -46,13 +60,46 @@ extension SupportedLanguage: ExpressibleByArgument {
         let locale = Locale(identifier: argument)
         guard
             let languageCode = locale.language.languageCode?.identifier,
-            let url = Bundle.module.url(forResource: "words-\(languageCode)", withExtension: "txt"),
-            let contents = try? String(contentsOf: url, encoding: .utf8),
             let lingo = try? Lingo.fromBundleLocalisations
         else { return nil }
 
+        // Find matching word files
+        guard
+            let wordsURLs = Bundle.module.urls(
+                forResourcesWithExtension: "txt", subdirectory: "words")
+        else {
+            return nil
+        }
+
+        let matchingURLs: [URL]
+        if let region = locale.language.region {
+            // Specific region requested - look for exact match
+            let targetFilename = "\(languageCode)_\(region.identifier).txt"
+            matchingURLs = wordsURLs.filter { $0.lastPathComponent == targetFilename }
+        } else {
+            // Language only - collect all files for this language
+            let prefix = "\(languageCode)_"
+            matchingURLs = wordsURLs.filter { $0.lastPathComponent.hasPrefix(prefix) }
+        }
+
+        // Return nil if no matching files found
+        guard !matchingURLs.isEmpty else { return nil }
+
+        // Load and combine contents from all matching files
+        var allWords: [String] = []
+        for url in matchingURLs {
+            guard let contents = try? String(contentsOf: url, encoding: .utf8) else {
+                return nil
+            }
+            allWords.append(contentsOf: contents.components(separatedBy: .newlines))
+        }
+
+        // Remove empty strings and duplicates
+        let uniqueWords = Array(Set(allWords.filter { !$0.isEmpty }))
+
         self.init(
-            locale: locale, solver: Solver(words: contents.components(separatedBy: .newlines)),
+            locale: locale,
+            solver: Solver(words: uniqueWords),
             lingo: lingo)
     }
 }

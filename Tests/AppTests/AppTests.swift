@@ -93,7 +93,8 @@ import Testing
                     at: 0,
                     length: response.body.readableBytes,
                     encoding: .utf8)
-                try #expect(#require(bodyString).contains("<a href=\"de\">Deutsch</a>"))
+                try #expect(
+                    #require(bodyString).contains("<a href=\"de\">Deutsch (Deutschland)</a>"))
                 try #expect(
                     #require(bodyString).contains(
                         "<link rel=\"stylesheet\" href=\"static/styles.css\">"))
@@ -114,7 +115,8 @@ import Testing
                     length: response.body.readableBytes,
                     encoding: .utf8)
                 try #expect(#require(bodyString).contains("Lösen wir mal ein Wort!"))
-                try #expect(#require(bodyString).contains("<a href=\"en\">English</a>"))
+                try #expect(
+                    #require(bodyString).contains("<a href=\"en\">English (New Zealand)</a>"))
             }
         }
     }

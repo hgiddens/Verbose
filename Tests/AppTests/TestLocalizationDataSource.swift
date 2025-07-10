@@ -8,12 +8,14 @@ struct TestLocalizationDataSource: LocalizationDataSource {
             "app.subtitle": "Test subtitle for English",
             "entry.title": "Test entry title",
             "error.pattern": "Test error for pattern: %{pattern}",
+            "language.combined": "%{language} (%{region})",
         ],
         "de": [
             "app.title": "Test Verbose",
             "app.subtitle": "Test Untertitel auf Deutsch",
             "entry.title": "Lösen wir mal ein Wort!",
             "error.pattern": "Test Fehler für Muster: %{pattern}",
+            "language.combined": "%{language} (%{region})",
         ],
     ]
 
