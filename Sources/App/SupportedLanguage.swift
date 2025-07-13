@@ -74,7 +74,7 @@ extension SupportedLanguage: ExpressibleByArgument {
             let languageCode = locale.language.languageCode?.identifier,
             let lingo = try? Lingo.fromBundleLocalisations,
             let wordsURLs = Bundle.module.urls(
-                forResourcesWithExtension: "txt", subdirectory: "words")
+                forResourcesWithExtension: "txt", subdirectory: "words") as [URL]?
         else {
             return nil
         }
