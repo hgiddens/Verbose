@@ -1,5 +1,6 @@
 import Foundation
 import Hummingbird
+import HummingbirdCompression
 import HummingbirdElementary
 import Solver
 
@@ -60,13 +61,16 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
-    router.addMiddleware {
-        FileMiddleware(
-            fileProvider: StaticFileProvider(bundlePath: Bundle.module.bundleURL.path)
-        )
-    }
     router.addMiddleware { LogRequestsMiddleware(.info) }
     router.addMiddleware { SecurityHeadersMiddleware() }
+    router.addMiddleware { ResponseCompressionMiddleware(minimumResponseSizeToCompress: 512) }
+    router.addMiddleware {
+        let resourcesURL = Bundle.module.resourceURL ?? Bundle.module.bundleURL
+        FileMiddleware(
+            resourcesURL.appending(component: "static").path,
+            urlBasePath: "/static"
+        )
+    }
 
     // Add routes
     router.get("/") { request, context in
