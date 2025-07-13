@@ -64,7 +64,13 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     router.addMiddleware { LogRequestsMiddleware(.info) }
     router.addMiddleware { SecurityHeadersMiddleware() }
     router.addMiddleware { ResponseCompressionMiddleware(minimumResponseSizeToCompress: 512) }
-    router.addMiddleware { FileMiddleware(fileProvider: StaticFileProvider()) }
+    router.addMiddleware {
+        let resourcesURL = Bundle.module.resourceURL ?? Bundle.module.bundleURL
+        FileMiddleware(
+            resourcesURL.appending(component: "static").path,
+            urlBasePath: "/static"
+        )
+    }
 
     // Add routes
     router.get("/") { request, context in
