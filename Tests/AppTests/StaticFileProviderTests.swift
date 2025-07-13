@@ -4,65 +4,45 @@ import Testing
 @testable import Verbose
 
 @Suite final class StaticFileTests {
-    @Test func testValidStaticFileIdentifierGeneration() throws {
-        let provider = StaticFileProvider(bundlePath: "/test/bundle")
+    let provider = StaticFileProvider()
 
-        let validId = provider.getFileIdentifier("/static/styles.css")
-        #expect(validId == "/test/bundle/static/styles.css")
+    @Test func validStaticFileIdentifierGeneration() throws {
+        let expectedIdentifier = provider.resourceURL.appending(components: "static", "styles.css")
+            .path
+        #expect(FileManager.default.fileExists(atPath: expectedIdentifier))
+        #expect(provider.getFileIdentifier("/static/styles.css") == expectedIdentifier)
     }
 
-    @Test func testInvalidPathsReturnNil() throws {
-        let provider = StaticFileProvider(bundlePath: "/test/bundle")
-
-        let invalidId = provider.getFileIdentifier("/words-en.txt")
-        #expect(invalidId == nil)
+    @Test func invalidPathsReturnNil() throws {
+        #expect(provider.getFileIdentifier("/no-such-file.txt") == nil)
     }
 
-    @Test func testDirectoryTraversalPrevention() throws {
-        let provider = StaticFileProvider(bundlePath: "/test/bundle")
-
-        let path = "/static/../words-en.txt"
-        #expect(provider.getFileIdentifier(path) == nil)
-        #expect(provider.getFileIdentifier(path) == nil)
+    @Test func directoryTraversalPrevention() throws {
+        let wordsFile = provider.resourceURL.appending(path: "static/../words/en_GB.txt")
+        #expect(FileManager.default.fileExists(atPath: wordsFile.path))
+        #expect(provider.getFileIdentifier("/static/../words/en_GB.txt") == nil)
     }
 
-    @Test func testNonStaticPathsBlocked() throws {
-        let provider = StaticFileProvider(bundlePath: "/test/bundle")
-
-        #expect(provider.getFileIdentifier("/words-en.txt") == nil)
-    }
-
-    @Test func testValidStaticPaths() throws {
-        let provider = StaticFileProvider(bundlePath: "/test/bundle")
-
+    @Test func nonStaticPathsBlocked() throws {
         #expect(
-            provider.getFileIdentifier("/static/styles.css") == "/test/bundle/static/styles.css")
+            FileManager.default.fileExists(
+                atPath: provider.resourceURL.appending(components: "words", "en_GB.txt").path))
+        #expect(provider.getFileIdentifier("/words/en_GB.txt") == nil)
     }
 
-    @Test func testGetAttributes() async throws {
-        let tempDir = FileManager.default.temporaryDirectory
-        let testBundle = tempDir.appendingPathComponent("test-bundle-\(UUID())")
-        let staticDir = testBundle.appendingPathComponent("static")
+    @Test func getAttributes() async throws {
+        let styles = provider.resourceURL.appending(components: "static", "styles.css")
+        let fileAttributes = try FileManager.default.attributesOfItem(atPath: styles.path)
 
-        try FileManager.default.createDirectory(at: staticDir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: testBundle) }
-
-        let cssFile = staticDir.appendingPathComponent("test.css")
-        let cssContent = "/* Test CSS */"
-        try cssContent.write(to: cssFile, atomically: true, encoding: .utf8)
-
-        let provider = StaticFileProvider(bundlePath: testBundle.path)
-        let fileId = testBundle.path + "/static/test.css"
-
+        let fileId = try #require(provider.getFileIdentifier("/static/styles.css"))
         let attributes = try await provider.getAttributes(id: fileId)
+
         #expect(attributes?.isFolder == false)
-        #expect(attributes?.size == cssContent.utf8.count)
+        #expect(try #require(attributes?.size) == (fileAttributes as NSDictionary).fileSize())
     }
 
-    @Test func testGetAttributesMissingFile() async throws {
-        let provider = StaticFileProvider(bundlePath: "/nonexistent")
-
-        let attributes = try await provider.getAttributes(id: "/nonexistent/static/missing.css")
+    @Test func getAttributesMissingFile() async throws {
+        let attributes = try await provider.getAttributes(id: "/nonexistent")
         #expect(attributes == nil)
     }
 }

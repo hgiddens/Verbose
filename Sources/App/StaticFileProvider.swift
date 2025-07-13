@@ -3,12 +3,8 @@ import Hummingbird
 import NIOCore
 
 struct StaticFileProvider: FileProvider {
-    private let bundlePath: String
+    let resourceURL: URL = Bundle.module.resourceURL ?? Bundle.module.bundleURL
     private let staticSubdirectory: String = "static"
-
-    init(bundlePath: String) {
-        self.bundlePath = bundlePath
-    }
 
     struct FileAttributes: FileMiddlewareFileAttributes {
         let isFolder: Bool
@@ -42,10 +38,10 @@ struct StaticFileProvider: FileProvider {
             return nil
         }
 
-        let fullPath = "\(bundlePath)/\(staticPath)"
+        let fullPath = "\(resourceURL.path)/\(staticPath)"
         let url = URL(fileURLWithPath: fullPath)
 
-        guard url.path.hasPrefix("\(bundlePath)/\(staticSubdirectory)/") else {
+        guard url.path.hasPrefix("\(resourceURL.path)/\(staticSubdirectory)/") else {
             return nil
         }
 
