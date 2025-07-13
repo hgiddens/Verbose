@@ -61,14 +61,14 @@ func buildRouter(supportedLanguages: [SupportedLanguage])
     let router = Router(context: AppRequestContext.self)
 
     // Add middleware
+    router.addMiddleware { LogRequestsMiddleware(.info) }
+    router.addMiddleware { SecurityHeadersMiddleware() }
     router.addMiddleware { ResponseCompressionMiddleware(minimumResponseSizeToCompress: 512) }
     router.addMiddleware {
         FileMiddleware(
             fileProvider: StaticFileProvider(bundlePath: Bundle.module.bundleURL.path)
         )
     }
-    router.addMiddleware { LogRequestsMiddleware(.info) }
-    router.addMiddleware { SecurityHeadersMiddleware() }
 
     // Add routes
     router.get("/") { request, context in
