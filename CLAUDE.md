@@ -115,4 +115,12 @@ If things start unexpectedly failing, or things seem wrong, stop and validate (e
 
 ## Memories
 
-- Don't ignore the instructions that have been provided to you in this file.
+- **Don't ignore the instructions that have been provided to you in this file**.
+- **Follow user instructions precisely**. If a user says to use existing
+  initializers, search for and use them rather than creating custom
+  implementations.
+- **Always prefer existing library methods and initializers over hand-rolling
+  equivalent code**. Before implementing custom solutions, search for existing
+  APIs that accomplish the same goal.
+- **Ask clarifying questions** when requirements are unclear rather than
+  making assumptions that lead to incorrect implementations.
