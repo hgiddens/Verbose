@@ -71,9 +71,7 @@ struct StaticFileProvider: FileProvider {
     func loadFile(id: String, context: some RequestContext) async throws -> ResponseBody {
         let url = URL(fileURLWithPath: id)
         let data = try Data(contentsOf: url)
-        return ResponseBody(contentLength: data.count) { writer in
-            try await writer.write(ByteBuffer(bytes: data))
-        }
+        return .init(byteBuffer: ByteBuffer(bytes: data))
     }
 
     func loadFile(id: String, range: ClosedRange<Int>, context: some RequestContext) async throws
@@ -86,9 +84,6 @@ struct StaticFileProvider: FileProvider {
         let endIndex = data.index(data.startIndex, offsetBy: min(range.upperBound, data.count - 1))
 
         let rangeData = data[startIndex...endIndex]
-        let buffer = ByteBuffer(bytes: Data(rangeData))
-        return ResponseBody(contentLength: rangeData.count) { writer in
-            try await writer.write(buffer)
-        }
+        return .init(byteBuffer: ByteBuffer(bytes: Data(rangeData)))
     }
 }
