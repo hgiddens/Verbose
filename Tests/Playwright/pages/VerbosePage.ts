@@ -2,20 +2,20 @@ import { type Locator, type Page } from '@playwright/test';
 
 export class VerbosePage {
   readonly page: Page;
-  
+
   // Main page elements
   readonly appTitle: Locator;
   readonly patternInput: Locator;
   readonly submitButton: Locator;
-  
+
   // Language switching
   readonly germanLanguageLink: Locator;
   readonly englishLanguageLink: Locator;
-  
+
   // Placeholder text (language-specific)
   readonly englishPlaceholder: Locator;
   readonly germanPlaceholder: Locator;
-  
+
   // Results section
   readonly resultsHeading: Locator;
   readonly noResultsHeading: Locator;
@@ -26,23 +26,25 @@ export class VerbosePage {
 
   constructor(page: Page) {
     this.page = page;
-    
+
     // Main page elements
     this.appTitle = page.getByRole('heading', { name: 'Verbose' });
     this.patternInput = page.locator('#pattern');
     this.submitButton = page.getByRole('button', { name: "Let's go!" });
-    
+
     // Language switching
     this.germanLanguageLink = page.getByRole('link', { name: 'Deutsch' });
     this.englishLanguageLink = page.getByRole('link', { name: 'English' });
-    
+
     // Placeholder text
     this.englishPlaceholder = page.getByPlaceholder('v?r?o?e');
     this.germanPlaceholder = page.getByPlaceholder('Stra?e');
-    
+
     // Results section
     this.resultsHeading = page.getByRole('heading', { name: 'Words:' });
-    this.noResultsHeading = page.getByRole('heading', { name: 'No words found :(' });
+    this.noResultsHeading = page.getByRole('heading', {
+      name: 'No words found :(',
+    });
     this.errorHeading = page.getByRole('heading', { name: 'Sorry!' });
     this.wordList = page.locator('.word-list');
     this.wordListItems = page.locator('.word-list ul li');

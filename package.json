@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "format:ts": "prettier --write \"**/*.ts\"",
+    "format:check:ts": "prettier --check \"**/*.ts\""
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hgiddens/Verbose.git"
@@ -18,6 +21,7 @@
   "homepage": "https://github.com/hgiddens/Verbose#readme",
   "devDependencies": {
     "@playwright/test": "^1.54.1",
-    "@types/node": "^24.0.13"
+    "@types/node": "^24.0.13",
+    "prettier": "^3.6.2"
   }
 }

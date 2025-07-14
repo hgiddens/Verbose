@@ -64,7 +64,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'swift run -- Verbose --log-level=debug --port=8081 --languages=en --languages=de',
+    command:
+      'swift run -- Verbose --log-level=debug --port=8081 --languages=en --languages=de',
     url: 'http://localhost:8081',
     reuseExistingServer: !process.env.CI,
   },
