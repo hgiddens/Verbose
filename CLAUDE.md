@@ -79,8 +79,14 @@ swift package reset
 
 ### Code Formatting
 ```bash
-# Format the code by default
+# Format Swift code
 swift format -ipr .
+
+# Format TypeScript code
+npm run format:ts
+
+# Check TypeScript formatting without changing files
+npm run format:check:ts
 ```
 
 ## Code Quality
@@ -109,7 +115,7 @@ If things start unexpectedly failing, or things seem wrong, stop and validate (e
 
 ## Source control
 
-- **Format the code before each commit**. This is mandatory.
+- **Format the code before each commit**. This is mandatory for both Swift and TypeScript files.
 - Commit messages should have a first line that is less than 80 characters long, is a complete sentence, starts with a verb and ends with a period.
 - Commit messages should be wrapped at 80 characters.
 

@@ -1,0 +1,27 @@
+{
+  "name": "verbose",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "format:ts": "prettier --write \"**/*.ts\"",
+    "format:check:ts": "prettier --check \"**/*.ts\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hgiddens/Verbose.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/hgiddens/Verbose/issues"
+  },
+  "homepage": "https://github.com/hgiddens/Verbose#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.0.13",
+    "prettier": "^3.6.2"
+  }
+}
